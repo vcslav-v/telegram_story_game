@@ -74,7 +74,7 @@ install:
 
 test:
 	poetry run pytest tests/
-test-full-diff:
+test-vv:
 	poetry run pytest -vv tests/
 package-install:
 	python3 -m pip -q install poetry
@@ -82,3 +82,20 @@ package-install:
 	python3 -m pip -q install --user dist/*.whl
 coverage:
 	poetry run pytest --cov=$(APP_NAME) --cov-report xml tests/
+
+sqlalchemy-init:
+	poetry add sqlalchemy
+	poetry add psycopg2-binary
+	poetry add alembic
+	poetry run alembic init alembic
+	echo 'exclude = alembic/*' >> setup.cfg
+	touch $(APP_NAME)/models.py
+	poetry add --dev sqlalchemy-stubs
+	echo '"""DataBase models."""' >> $(APP_NAME)/models.py
+	echo '[mypy]' >> setup.cfg
+	echo 'plugins = sqlmypy' >> setup.cfg
+db_revision:
+	poetry run alembic revision --autogenerate
+
+db_update:
+	poetry run alembic upgrade head

@@ -94,3 +94,20 @@ def make_story(
         )
         raise exc
     return new_story
+
+
+def get_user_story_by_name(telegram_id: int, story_name: str) -> models.Story:
+    """Return story by name."""
+    user = get_user_or_make_if_new(telegram_id)
+    story = session.query(models.Story).filter_by(
+        author=user,
+        name=story_name,
+    ).first()
+    if story:
+        return story
+
+    logger.error('Story {name} is not exist for tg_id {tg_id}'.format(
+        name=story_name,
+        tg_id=user.telegram_id,
+    ))
+    raise ValueError

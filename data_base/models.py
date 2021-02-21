@@ -13,7 +13,7 @@ class TelegramUser(Base):
 
     id = Column(Integer, primary_key=True)
 
-    telegram_id = Column(Integer)
+    telegram_id = Column(Integer, unique=True)
     stories = relationship('Story', back_populates='author')
 
 

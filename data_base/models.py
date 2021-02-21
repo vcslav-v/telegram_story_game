@@ -24,6 +24,7 @@ class Story(Base):
 
     id = Column(Integer, primary_key=True)
 
+    name = Column(Text, unique=True)
     author_id = Column(Integer, ForeignKey('telegram_users.id'))
     author = relationship('TelegramUser', back_populates='stories')
 

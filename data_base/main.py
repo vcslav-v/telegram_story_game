@@ -4,6 +4,7 @@ from logging.config import dictConfig
 from os import environ
 
 from sqlalchemy import create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.session import sessionmaker
 
 from data_base import models
@@ -49,14 +50,7 @@ session = sessionmaker(bind=engine)()
 
 
 def get_user_or_make_if_new(telegram_id: int) -> models.TelegramUser:
-    """Return user if one exist or add new user to db.
-
-    Parameters:
-        telegram_id: telegram id
-
-    Returns:
-        User object
-    """
+    """Return user if one exist or add new user to db."""
     user = session.query(models.TelegramUser).filter_by(
         telegram_id=telegram_id,
     ).first()
@@ -68,3 +62,35 @@ def get_user_or_make_if_new(telegram_id: int) -> models.TelegramUser:
     session.add(user)
     session.commit()
     return user
+
+
+def make_story(
+    telegram_id: int,
+    story_name: str,
+) -> models.Story:
+    """Make and return new story."""
+    logger.info(
+        'make a story - tg_id = {tg_id}, str_name = {str_name}'.format(
+            tg_id=telegram_id,
+            str_name=story_name,
+        ),
+    )
+    user = get_user_or_make_if_new(telegram_id)
+
+    new_story = models.Story(name=story_name, author=user)
+    session.add(new_story)
+    try:
+        session.commit()
+    except IntegrityError as exc:
+        session.close()
+        logger.error(
+            (
+                'Cant make new story because story exist already. '
+                'make a story - tg_id = {tg_id}, str_name = {str_name}'
+            ).format(
+                tg_id=telegram_id,
+                str_name=story_name,
+            ),
+        )
+        raise exc
+    return new_story

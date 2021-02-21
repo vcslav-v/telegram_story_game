@@ -67,13 +67,24 @@ init:
 
 lint:
 	poetry run flake8 $(APP_NAME)
+	poetry run flake8 data_base
 	poetry run mypy $(APP_NAME)
+	poetry run mypy data_base
 
 install:
 	poetry install
 
 test:
 	poetry run pytest tests/
+
+test-with-base:
+	docker run --name test-postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=postgres -d -p 5432:5432 postgres
+	poetry run alembic upgrade head
+	poetry run pytest tests/
+	docker kill test-postgres
+	docker rm test-postgres
+
+
 test-vv:
 	poetry run pytest -vv tests/
 package-install:

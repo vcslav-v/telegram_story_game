@@ -19,7 +19,7 @@ current_path = os.path.dirname(os.path.abspath(__file__))
 ROOT_PATH = os.path.join(current_path, '..')
 sys.path.append(ROOT_PATH)
 
-from data_base.main import engine
+from data_base.db_tool import engine
 from data_base.models import Base
 
 

@@ -79,6 +79,7 @@ test:
 
 test-with-base:
 	docker run --name test-postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=postgres -d -p 5432:5432 postgres
+	sleep 1
 	poetry run alembic upgrade head
 	poetry run pytest tests/
 	docker kill test-postgres

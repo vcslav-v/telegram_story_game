@@ -47,7 +47,7 @@ class Chapter(Base):
     name = Column(Text)
 
     start_message = relationship(
-        'Message', uselist=False, back_populates='chapter_point'
+        'Message', uselist=False, back_populates='start_chapter_point_for',
     )
 
 
@@ -62,8 +62,8 @@ class Message(Base):
     story = relationship('Story', back_populates='messages')
 
     chapter_id = Column(Integer, ForeignKey('chapters.id'))
-    chapter_point = relationship('Chapter', back_populates='start_message')
+    start_chapter_point_for = relationship('Chapter', back_populates='start_message')
 
     message = Column(Text)
     parent_id = Column(Integer, ForeignKey('messages.id'))
-    link = relationship('Message', lazy='joined', join_depth=1)
+    link = relationship('Message', lazy='joined', uselist=False, join_depth=1)

@@ -2,7 +2,6 @@
 import logging
 from logging.config import dictConfig
 from os import environ
-from typing import List
 
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
@@ -33,7 +32,7 @@ LOGGING_CONFIG = {
             'maxBytes': 10240,
             'backupCount': 0,
             'formatter': 'standart',
-        }
+        },
     },
     'loggers': {
         __name__: {
@@ -114,6 +113,28 @@ def get_user_story_by_name(telegram_id: int, story_name: str) -> models.Story:
     raise ValueError
 
 
+def get_user_chapter_by_name(
+    telegram_id: int,
+    story_name: str,
+    chapter_name: str,
+) -> models.Chapter:
+    """Return chapter by name."""
+    story = get_user_story_by_name(telegram_id, story_name)
+    chapter = session.query(models.Chapter).filter_by(
+        name=chapter_name,
+        story=story,
+    ).first()
+    if chapter:
+        return chapter
+
+    err_msg = 'User have not {story}/{chapter}'.format(
+        story=story_name,
+        chapter=chapter_name,
+    )
+    logger.error(err_msg)
+    raise ValueError(err_msg)
+
+
 def make_chapter(
     telegram_id: int,
     story_name: str,
@@ -151,3 +172,36 @@ def _make_place_for_insert_chapter(chapters, chapter_num):
         if chapter.number < chapter_num:
             break
         chapter.number += 1
+
+
+def get_message_by_id(msg_id: int) -> models.Message:
+    """Return message by id."""
+    msg = session.query(models.Message).filter_by(id=msg_id).first()
+    if msg:
+        return msg
+
+    err_msg = 'There is not message id - {msg_id}'.format(
+        msg_id=msg_id,
+    )
+    logger.error(err_msg)
+    raise ValueError(err_msg)
+
+
+def make_message(
+    telegram_id: int,
+    story_name: str,
+    next_message_id: int = -1,
+    message: str = '',
+):
+    """Make new message."""
+    story = get_user_story_by_name(telegram_id, story_name)
+    new_msg = models.Message(story=story)
+    if message:
+        new_msg.message = message
+    if next_message_id > 0:
+        next_message = get_message_by_id(next_message_id)
+        new_msg.link = next_message
+
+    session.add(new_msg)
+    session.commit()
+    return new_msg

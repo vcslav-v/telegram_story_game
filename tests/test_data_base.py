@@ -85,3 +85,31 @@ def test_make_chapter():
     )
     assert chapter.number == 1
     assert chapter_ins.number == 0
+
+
+def test_make_message():
+    """Test func make_message."""
+    user = db_tool.get_user_or_make_if_new(7)
+    story = db_tool.make_story(user.telegram_id, 'test_make_message_story')
+    chapter = db_tool.make_chapter(
+        user.telegram_id,
+        'test_make_message_story',
+        'test_make_message_chapter',
+    )
+    message = db_tool.make_message(
+        user.telegram_id,
+        'test_make_message_story',
+        message='test_make_message',
+    )
+    expect_msg = db_tool.session.query(models.Message).filter_by(
+        id=message.id,
+    ).first()
+    assert expect_msg == message
+
+    message_parrent = db_tool.make_message(
+        user.telegram_id,
+        'test_make_message_story',
+        message='test_make_message_2',
+        next_message_id=message.id,
+    )
+    assert message_parrent.link == expect_msg

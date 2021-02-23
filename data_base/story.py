@@ -3,7 +3,7 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 
-from data_base import db, models
+from data_base import db, models, telegram_user
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ def make(
     )
     session = db.Session()
 
-    user = _get_user_model(session, user_id)
+    user = telegram_user.get_model(session, user_id)
 
     new_story = models.Story(name=story_name, author=user)
 
@@ -45,15 +45,13 @@ def make(
     return repr_story
 
 
-def get(user_id: int, story_name: str) -> dict:
+def get(user_id: int, story_id: int) -> dict:
     """Return story by name."""
     session = db.Session()
-    user = session.query(models.TelegramUser).filter_by(
-        id=user_id,
-    ).first()
+    user = telegram_user.get_model(session, user_id)
     story = session.query(models.Story).filter_by(
         author=user,
-        name=story_name,
+        id=story_id,
     ).first()
 
     if story:
@@ -62,22 +60,24 @@ def get(user_id: int, story_name: str) -> dict:
         return repr_story
 
     session.close()
-    logger.error('Story {name} is not exist for tg_id {user_id}'.format(
-        name=story_name,
+    logger.error('Story {id} is not exist for user {user_id}'.format(
+        id=story_id,
         user_id=user_id,
     ))
     raise ValueError
 
 
-def _get_user_model(session, user_id):
-    user = session.query(models.TelegramUser).filter_by(
-        id=user_id,
+def get_model(session, story_id: int, user_id: int) -> models.Story:
+    """Find user's story."""
+    story = session.query(models.Story).filter_by(
+        author_id=user_id,
+        id=story_id,
     ).first()
-    if not user:
-        session.close()
-        err_msg = 'Cant make story user id-{user_id} is not exist.'.format(
-            user_id=user_id,
-        )
-        logger.error(err_msg)
-        raise ValueError(err_msg)
-    return user
+    if story:
+        return story
+    session.close()
+    logger.error('Story {id} is not exist for user {user_id}'.format(
+        id=story_id,
+        user_id=user_id,
+    ))
+    raise ValueError

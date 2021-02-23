@@ -46,21 +46,22 @@ def test_make_story():
 def test_get_story_by_name():
     """Test func get_story_by_name."""
     user = telegram_user.get_or_make_if_new(4)
-    story.make(user['id'], 'test_get_story_by_name')
+    user_story = story.make(user['id'], 'test_get_story_by_name')
     session = db.Session()
     expect_story = session.query(models.Story).filter_by(
         author_id=user['id'],
         name='test_get_story_by_name',
     ).first()
     user_story = story.get(
-        user['id'], 'test_get_story_by_name',
+        user['id'],
+        user_story['id'],
     )
     assert expect_story.to_dict() == user_story
 
     user = telegram_user.get_or_make_if_new(5)
     with pytest.raises(ValueError):
         story.get(
-            user['id'], 'test_get_story_by_name',
+            user['id'], user_story['id'],
         )
     db.Session.remove()
 
@@ -71,7 +72,7 @@ def test_make_chapter():
     user_story = story.make(user['id'], 'test_make_chapter_story')
     story_chapter = chapter.make(
         user['id'],
-        user_story['name'],
+        user_story['id'],
         'test_make_chapter_chapter',
     )
     session = db.Session()
@@ -84,12 +85,12 @@ def test_make_chapter():
 
     chapter.make(
         user['id'],
-        user_story['name'],
+        user_story['id'],
         'test_make_chapter_chapter_2',
     )
     chapter_ins = chapter.make(
         user['id'],
-        user_story['name'],
+        user_story['id'],
         'test_make_chapter_chapter_3',
         0,
     )
@@ -105,15 +106,15 @@ def test_make_chapter():
 def test_make_message():
     """Test func make_message."""
     user = telegram_user.get_or_make_if_new(7)
-    story.make(user['id'], 'test_make_message_story')
+    user_story = story.make(user['id'], 'test_make_message_story')
     chapter.make(
         user['id'],
-        'test_make_message_story',
+        user_story['id'],
         'test_make_message_chapter',
     )
     story_message = message.make(
         user['id'],
-        'test_make_message_story',
+        user_story['id'],
         message='test_make_message',
     )
     session = db.Session()
@@ -124,7 +125,7 @@ def test_make_message():
 
     message_parrent = message.make(
         user['id'],
-        'test_make_message_story',
+        user_story['id'],
         message='test_make_message_2',
         next_message_id=story_message['id'],
     )

@@ -1,14 +1,14 @@
 """Data base app."""
 import logging
 
-from data_base import db, models
+from data_base import db, models, story
 
 logger = logging.getLogger(__name__)
 
 
 def make(
     user_id: int,
-    story_name: str,
+    story_id: int,
     chapter_name: str,
     chapter_num: int = -1,
 ):
@@ -17,15 +17,12 @@ def make(
     If chapter_num = -1 chapter get next chapter_num.
     """
     session = db.Session()
-    story = session.query(models.Story).filter_by(
-        author_id=user_id,
-        name=story_name,
-    ).first()
-    next_number = len(story.chapters)
+    user_story = story.get_model(session, story_id, user_id)
+    next_number = len(user_story.chapters)
     if chapter_num < 0 or chapter_num == next_number:
         chapter_num = next_number
     elif chapter_num < next_number:
-        _make_place_for_insert_chapter(story.chapters, chapter_num)
+        _make_place_for_insert_chapter(user_story.chapters, chapter_num)
     else:
         logger.error('Chapter number bigger than exist numbers')
         raise ValueError('Chapter number bigger than exist numbers')
@@ -33,7 +30,7 @@ def make(
     new_chapter = models.Chapter(
         name=chapter_name,
         number=chapter_num,
-        story=story,
+        story=user_story,
     )
     session.add(new_chapter)
     session.commit()

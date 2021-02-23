@@ -24,3 +24,18 @@ def get_or_make_if_new(telegram_id: int) -> dict:
     repr_user = user.to_dict()
     session.close()
     return repr_user
+
+
+def get_model(session, user_id: int) -> models.TelegramUser:
+    """Return TelegramUser db model."""
+    user = session.query(models.TelegramUser).filter_by(
+        id=user_id,
+    ).first()
+    if not user:
+        session.close()
+        err_msg = 'Cant make story user id-{user_id} is not exist.'.format(
+            user_id=user_id,
+        )
+        logger.error(err_msg)
+        raise ValueError(err_msg)
+    return user

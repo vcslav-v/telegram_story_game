@@ -1,23 +1,20 @@
 """Data base app."""
 import logging
 
-from data_base import db, models
+from data_base import db, models, story
 
 logger = logging.getLogger(__name__)
 
 
 def make(
     user_id: int,
-    story_name: str,
+    story_id: int,
     next_message_id: int = -1,
     message: str = '',
 ) -> dict:
     """Make new message."""
     session = db.Session()
-    user_story = session.query(models.Story).filter_by(
-        author_id=user_id,
-        name=story_name,
-    ).first()
+    user_story = story.get_model(session, story_id, user_id)
     new_msg = models.Message(story=user_story)
     if message:
         new_msg.message = message

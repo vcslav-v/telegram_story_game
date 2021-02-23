@@ -178,3 +178,79 @@ def test_rename_story():
     ).first()
     assert rnm_story.name == 'rename'
     assert rename_story['name'] == rnm_story.name
+
+
+def test_rename_chapter():
+    user = telegram_user.get_or_make_if_new(10)
+    user_story = story.make(user['id'], 'test_rename_chapter')
+    story_chapter = chapter.make(
+        user['id'],
+        user_story['id'],
+        'test_chapter',
+    )
+    renamed_chapter = chapter.rename(
+        user_story['id'],
+        story_chapter['id'],
+        'new name',
+    )
+    session = db.Session()
+    real_chapter = session.query(models.Chapter).filter_by(
+        id=story_chapter['id'],
+    ).first()
+    assert real_chapter.name == 'new name'
+    assert renamed_chapter['name'] == 'new name'
+
+
+def test_replace_chapter():
+    user = telegram_user.get_or_make_if_new(11)
+    user_story = story.make(user['id'], 'test_replace_chapter')
+    first_chapter = chapter.make(
+        user['id'],
+        user_story['id'],
+        'test_replace_chapter_0',
+    )
+    chapter.make(
+        user['id'],
+        user_story['id'],
+        'test_replace_chapter_1',
+    )
+    chapter.make(
+        user['id'],
+        user_story['id'],
+        'test_replace_chapter_2',
+    )
+    chapter.make(
+        user['id'],
+        user_story['id'],
+        'test_replace_chapter_3',
+    )
+
+    replased_chapter = chapter.replace(
+        user['id'],
+        user_story['id'],
+        first_chapter['id'],
+        3,
+    )
+    session = db.Session()
+    real_chapter = session.query(models.Chapter).filter_by(
+        id=replased_chapter['id'],
+    ).first()
+    assert real_chapter.number == 3
+    assert replased_chapter['number'] == 3
+    replased_chapter = chapter.replace(
+        user['id'],
+        user_story['id'],
+        first_chapter['id'],
+        0,
+    )
+    real_chapter = session.query(models.Chapter).filter_by(
+        id=replased_chapter['id'],
+    ).first()
+    assert real_chapter.number == 0
+    assert replased_chapter['number'] == 0
+    real_story = session.query(models.Story).filter_by(
+        id=user_story['id'],
+    ).first()
+    sorted_chapters = sorted(real_story.chapters, key=lambda chp: chp.number)
+    for index in range(3):
+        assert sorted_chapters[index].number == index

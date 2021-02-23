@@ -90,3 +90,20 @@ def rm(user_id: int, story_id: int):
     session.delete(user_story)
     session.commit()
     session.close()
+
+
+def rename(user_id: int, story_id: int, new_name: str) -> dict:
+    """Rename story."""
+    session = db.Session()
+    user_story = get_model(session, story_id, user_id)
+    if not new_name:
+        session.close()
+        logger.error('Name "{name}" is not correct.'.format(
+            name=new_name,
+        ))
+        raise ValueError
+    user_story.name = new_name
+    session.commit()
+    repr_story = user_story.to_dict()
+    session.close()
+    return repr_story

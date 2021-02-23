@@ -162,3 +162,19 @@ def test_rm_story():
         id=msg['id'],
     ).first()
     assert expect_msg is None
+
+
+def test_rename_story():
+    user = telegram_user.get_or_make_if_new(9)
+    user_story = story.make(user['id'], 'test_rename_story')
+    rename_story = story.rename(
+        user['id'],
+        user_story['id'],
+        'rename',
+    )
+    session = db.Session()
+    rnm_story = session.query(models.Story).filter_by(
+        id=user_story['id'],
+    ).first()
+    assert rnm_story.name == 'rename'
+    assert rename_story['name'] == rnm_story.name

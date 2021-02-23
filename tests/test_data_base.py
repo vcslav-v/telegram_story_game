@@ -131,3 +131,34 @@ def test_make_message():
     )
     assert message_parrent['link'] == expect_msg.to_dict()['id']
     db.Session.remove()
+
+
+def test_rm_story():
+    user = telegram_user.get_or_make_if_new(8)
+    user_story = story.make(user['id'], 'test_rm_story')
+    story_chapter = chapter.make(
+        user['id'],
+        user_story['id'],
+        'test_rm_story_chapter',
+    )
+    msg = message.make(
+        user['id'],
+        user_story['id'],
+        message='test_rm_story',
+    )
+    story.rm(user['id'], user_story['id'])
+    session = db.Session()
+    expect_story = session.query(models.Story).filter_by(
+        id=user_story['id'],
+    ).first()
+    assert expect_story is None
+
+    expect_chapter = session.query(models.Chapter).filter_by(
+        id=story_chapter['id'],
+    ).first()
+    assert expect_chapter is None
+
+    expect_msg = session.query(models.Message).filter_by(
+        id=msg['id'],
+    ).first()
+    assert expect_msg is None

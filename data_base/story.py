@@ -81,3 +81,12 @@ def get_model(session, story_id: int, user_id: int) -> models.Story:
         user_id=user_id,
     ))
     raise ValueError
+
+
+def rm(user_id: int, story_id: int):
+    """Delete story with chapter and mesages."""
+    session = db.Session()
+    user_story = get_model(session, story_id, user_id)
+    session.delete(user_story)
+    session.commit()
+    session.close()

@@ -38,9 +38,17 @@ class Story(Base):
     )
     author = relationship('TelegramUser', back_populates='stories')
 
-    chapters = relationship('Chapter', back_populates='story')
+    chapters = relationship(
+        'Chapter',
+        back_populates='story',
+        cascade='delete-orphan,delete',
+    )
 
-    messages = relationship('Message', back_populates='story')
+    messages = relationship(
+        'Message',
+        back_populates='story',
+        cascade='delete-orphan,delete',
+    )
 
     def to_dict(self):
         """Represent to dict."""
@@ -60,8 +68,16 @@ class Chapter(Base):
 
     id = Column(Integer, primary_key=True)
 
-    story_id = Column(Integer, ForeignKey('stories.id'), nullable=False)
-    story = relationship('Story', back_populates='chapters')
+    story_id = Column(
+        Integer,
+        ForeignKey('stories.id'),
+        nullable=False,
+    )
+    story = relationship(
+        'Story',
+        back_populates='chapters',
+        passive_deletes=True,
+    )
 
     number = Column(Integer, nullable=False)
     name = Column(Text, nullable=False)
@@ -92,11 +108,16 @@ class Message(Base):
     id = Column(Integer, primary_key=True)
 
     story_id = Column(Integer, ForeignKey('stories.id'), nullable=False)
-    story = relationship('Story', back_populates='messages')
+    story = relationship(
+        'Story',
+        passive_deletes=True,
+        back_populates='messages',
+    )
 
     chapter_id = Column(Integer, ForeignKey('chapters.id'))
     start_chapter_point_for = relationship(
-        'Chapter', back_populates='start_message',
+        'Chapter',
+        back_populates='start_message',
     )
 
     message = Column(Text)

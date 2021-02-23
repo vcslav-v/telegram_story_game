@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 9a45b75063ef
+Revision ID: adb57c0a2124
 Revises: 
-Create Date: 2021-02-22 20:24:46.117827
+Create Date: 2021-02-23 10:54:21.848243
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9a45b75063ef'
+revision = 'adb57c0a2124'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,22 +27,22 @@ def upgrade():
     op.create_table('stories',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.Text(), nullable=True),
-    sa.Column('author_id', sa.Integer(), nullable=True),
+    sa.Column('author_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['author_id'], ['telegram_users.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
     op.create_table('chapters',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('story_id', sa.Integer(), nullable=True),
-    sa.Column('number', sa.Integer(), nullable=True),
-    sa.Column('name', sa.Text(), nullable=True),
+    sa.Column('story_id', sa.Integer(), nullable=False),
+    sa.Column('number', sa.Integer(), nullable=False),
+    sa.Column('name', sa.Text(), nullable=False),
     sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('story_id', sa.Integer(), nullable=True),
+    sa.Column('story_id', sa.Integer(), nullable=False),
     sa.Column('chapter_id', sa.Integer(), nullable=True),
     sa.Column('message', sa.Text(), nullable=True),
     sa.Column('parent_id', sa.Integer(), nullable=True),

@@ -4,112 +4,129 @@ import os
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-os.environ['DB'] = 'localhost:5432'
-os.environ['DB_PASSWORD'] = 'mysecretpassword'
-
-from data_base import db_tool, models
+os.environ['SQLALCHEMY_DATABASE_URI'] = (
+    'postgresql+psycopg2://postgres:mysecretpassword@localhost:5432/postgres'
+)
+from data_base import chapter, db, message, models, story, telegram_user
 
 
 def test_get_user_or_make_if_new():
     """Test func get_user_or_make_if_new."""
-    user = db_tool.get_user_or_make_if_new(1)
-    expect_user = db_tool.session.query(models.TelegramUser).filter_by(
+    user = telegram_user.get_or_make_if_new(1)
+    session = db.Session()
+    expect_user = session.query(models.TelegramUser).filter_by(
         telegram_id=1,
     ).first()
-    assert user is expect_user
+    assert user == expect_user.to_dict()
+    db.Session.remove()
 
-    user_same = db_tool.get_user_or_make_if_new(1)
-    assert user is user_same
+    user_same = telegram_user.get_or_make_if_new(1)
+    assert user == user_same
 
 
 def test_make_story():
     """Test func make_story."""
-    user = db_tool.get_user_or_make_if_new(2)
-    story = db_tool.make_story(user.telegram_id, 'test_make_story')
-    expect_story = db_tool.session.query(models.Story).filter_by(
+    user = telegram_user.get_or_make_if_new(2)
+    user_story = story.make(user['id'], 'test_make_story')
+    session = db.Session()
+    expect_story = session.query(models.Story).filter_by(
         name='test_make_story',
     ).first()
-    assert expect_story is story
+    assert expect_story.to_dict() == user_story
+    db.Session.remove()
 
-    user = db_tool.get_user_or_make_if_new(3)
+    user = telegram_user.get_or_make_if_new(3)
     with pytest.raises(IntegrityError):
-        db_tool.make_story(user.telegram_id, 'test_make_story')
+        story.make(user['id'], 'test_make_story')
+
+    with pytest.raises(ValueError):
+        story.make(10, 'test_make_story_new')
 
 
 def test_get_story_by_name():
     """Test func get_story_by_name."""
-    user = db_tool.get_user_or_make_if_new(4)
-    db_tool.make_story(user.telegram_id, 'test_get_story_by_name')
-    expect_story = db_tool.session.query(models.Story).filter_by(
-        author=user,
+    user = telegram_user.get_or_make_if_new(4)
+    story.make(user['id'], 'test_get_story_by_name')
+    session = db.Session()
+    expect_story = session.query(models.Story).filter_by(
+        author_id=user['id'],
         name='test_get_story_by_name',
     ).first()
-    story = db_tool.get_user_story_by_name(
-        user.telegram_id, 'test_get_story_by_name',
+    user_story = story.get(
+        user['id'], 'test_get_story_by_name',
     )
-    assert expect_story is story
+    assert expect_story.to_dict() == user_story
 
-    user = db_tool.get_user_or_make_if_new(5)
+    user = telegram_user.get_or_make_if_new(5)
     with pytest.raises(ValueError):
-        db_tool.get_user_story_by_name(
-            user.telegram_id, 'test_get_story_by_name',
+        story.get(
+            user['id'], 'test_get_story_by_name',
         )
+    db.Session.remove()
 
 
 def test_make_chapter():
     """Test func make_chapter."""
-    user = db_tool.get_user_or_make_if_new(6)
-    story = db_tool.make_story(user.telegram_id, 'test_make_chapter_story')
-    chapter = db_tool.make_chapter(
-        user.telegram_id,
-        story.name,
+    user = telegram_user.get_or_make_if_new(6)
+    user_story = story.make(user['id'], 'test_make_chapter_story')
+    story_chapter = chapter.make(
+        user['id'],
+        user_story['name'],
         'test_make_chapter_chapter',
     )
-    expect_chapter = db_tool.session.query(models.Chapter).filter_by(
-        story=story,
+    session = db.Session()
+    expect_chapter = session.query(models.Chapter).filter_by(
+        story_id=user_story['id'],
         name='test_make_chapter_chapter',
     ).first()
-    assert chapter.number == 0
-    assert expect_chapter is chapter
+    assert story_chapter['number'] == 0
+    assert expect_chapter.to_dict() == story_chapter
 
-    db_tool.make_chapter(
-        user.telegram_id,
-        story.name,
+    chapter.make(
+        user['id'],
+        user_story['name'],
         'test_make_chapter_chapter_2',
     )
-    chapter_ins = db_tool.make_chapter(
-        user.telegram_id,
-        story.name,
+    chapter_ins = chapter.make(
+        user['id'],
+        user_story['name'],
         'test_make_chapter_chapter_3',
         0,
     )
-    assert chapter.number == 1
-    assert chapter_ins.number == 0
+    moved_chapter = session.query(models.Chapter).filter_by(
+        story_id=user_story['id'],
+        name='test_make_chapter_chapter',
+    ).first()
+    assert moved_chapter.number == 1
+    assert chapter_ins['number'] == 0
+    db.Session.remove()
 
 
 def test_make_message():
     """Test func make_message."""
-    user = db_tool.get_user_or_make_if_new(7)
-    story = db_tool.make_story(user.telegram_id, 'test_make_message_story')
-    chapter = db_tool.make_chapter(
-        user.telegram_id,
+    user = telegram_user.get_or_make_if_new(7)
+    story.make(user['id'], 'test_make_message_story')
+    chapter.make(
+        user['id'],
         'test_make_message_story',
         'test_make_message_chapter',
     )
-    message = db_tool.make_message(
-        user.telegram_id,
+    story_message = message.make(
+        user['id'],
         'test_make_message_story',
         message='test_make_message',
     )
-    expect_msg = db_tool.session.query(models.Message).filter_by(
-        id=message.id,
+    session = db.Session()
+    expect_msg = session.query(models.Message).filter_by(
+        id=story_message['id'],
     ).first()
-    assert expect_msg == message
+    assert expect_msg.to_dict() == story_message
 
-    message_parrent = db_tool.make_message(
-        user.telegram_id,
+    message_parrent = message.make(
+        user['id'],
         'test_make_message_story',
         message='test_make_message_2',
-        next_message_id=message.id,
+        next_message_id=story_message['id'],
     )
-    assert message_parrent.link == expect_msg
+    assert message_parrent['link'] == expect_msg.to_dict()['id']
+    db.Session.remove()

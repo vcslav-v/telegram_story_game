@@ -57,7 +57,6 @@ class Story(Base):
             'name': self.name,
             'author_id': self.author_id,
             'chapters': [chapter.to_dict() for chapter in self.chapters],
-            'messages': [message.to_dict() for message in self.messages],
         }
 
 

@@ -38,5 +38,4 @@ dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
 engine = create_engine(SQLALCHEMY_DATABASE_URI)
-session_factory = sessionmaker(bind=engine)
-Session = scoped_session(session_factory)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

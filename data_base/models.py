@@ -125,12 +125,16 @@ class Message(Base):
 
     own_buttons = relationship(
         'Button',
-        back_populates='message',
+        back_populates='parrent_message',
         cascade='delete-orphan,delete',
+        foreign_keys="[Button.parrent_message_id]"
     )
 
-    from_button_id = Column(Integer, ForeignKey('buttons.id'))
-    from_button = relationship('Button', back_populates='link')
+    from_button = relationship(
+        'Button',
+        back_populates='next_message',
+        foreign_keys="[Button.next_message_id]"
+    )
 
     def to_dict(self):
         """Represent to dict."""
@@ -140,6 +144,7 @@ class Message(Base):
             'chapter_id': self.chapter_id,
             'message': self.message,
             'link': self.link.id if self.link else None,
+            'buttons': [btn.to_dict() for btn in self.own_buttons]
         }
 
 
@@ -151,11 +156,31 @@ class Button(Base):
     id = Column(Integer, primary_key=True)
 
     text = Column(Text, nullable=False)
-    message_id = Column(Integer, ForeignKey('messages.id'), nullable=False)
-    message = relationship('Message', back_populates='own_buttons')
+    parrent_message_id = Column(
+        Integer,
+        ForeignKey('messages.id'),
+        nullable=False,
+    )
+    parrent_message = relationship(
+        'Message',
+        back_populates='own_buttons',
+        foreign_keys=[parrent_message_id]
+    )
 
-    link = relationship(
+    next_message_id = Column(Integer, ForeignKey('messages.id'))
+    next_message = relationship(
         'Message',
         back_populates='from_button',
-        uselist=False,
+        foreign_keys=[next_message_id],
     )
+
+    def to_dict(self):
+        """Represent to dict."""
+        return {
+            'id': self.id,
+            'text': self.text,
+            'parrent_message_id': self.parrent_message_id,
+            'next_message_id': (
+                self.next_message_id if self.next_message_id else None
+            ),
+        }

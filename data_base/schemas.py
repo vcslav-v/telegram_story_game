@@ -89,3 +89,27 @@ class MakeMsg(GetUserStory):
 
     message: Optional[str]
     next_message_id: Optional[int]
+
+
+class EditMsg(GetUserMsg):
+    message: Optional[str]
+    next_message_id: Optional[int]
+
+
+class AddButton(GetUserMsg):
+    """Button model."""
+
+    text: str
+
+
+class GetMsgButton(GetUserMsg):
+    """Button model."""
+
+    button_id: int
+
+
+class EditButton(GetMsgButton):
+    """Button model."""
+
+    text: Optional[str]
+    link_to_msg_id: Optional[int]

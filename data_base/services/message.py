@@ -25,14 +25,13 @@ def make(
         )
         next_message = get(db, req_msg)
         new_msg.link = next_message
-
     db.add(new_msg)
     db.commit()
     db.refresh(new_msg)
     return new_msg
 
 
-def get(db, req_body: schemas.GetMsg) -> models.Message:
+def get(db: Session, req_body: schemas.GetMsg) -> models.Message:
     """Return message by id."""
     msg = db.query(models.Message).filter_by(
         id=req_body.msg_id,
@@ -49,7 +48,10 @@ def get(db, req_body: schemas.GetMsg) -> models.Message:
     raise ValueError(err_msg)
 
 
-def get_check_user(db, req_body: schemas.GetUserMsg) -> models.Message:
+def get_check_user(
+    db: Session,
+    req_body: schemas.GetUserMsg
+) -> models.Message:
     """Return message by id."""
     msg = db.query(models.Message).filter_by(
         id=req_body.msg_id,
@@ -66,9 +68,22 @@ def get_check_user(db, req_body: schemas.GetUserMsg) -> models.Message:
     raise ValueError(err_msg)
 
 
-def rm(db, req_body: schemas.GetUserMsg) -> dict:
+def rm(db: Session, req_body: schemas.GetUserMsg) -> dict:
     """Remove message by id."""
     msg = get_check_user(db, req_body)
     db.delete(msg)
     db.commit()
     return {'result': 'ok'}
+
+
+def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
+    """Edit text message by id."""
+    msg = get_check_user(db, req_body)
+    if req_body.message:
+        msg.message = req_body.message
+    if req_body.next_message_id:
+        next_message = get(db, req_body)
+        msg.link = next_message
+    db.commit()
+    db.refresh(msg)
+    return msg

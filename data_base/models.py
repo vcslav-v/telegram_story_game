@@ -123,6 +123,15 @@ class Message(Base):
     parent_id = Column(Integer, ForeignKey('messages.id'))
     link = relationship('Message', lazy='joined', uselist=False, join_depth=1)
 
+    own_buttons = relationship(
+        'Button',
+        back_populates='message',
+        cascade='delete-orphan,delete',
+    )
+
+    from_button_id = Column(Integer, ForeignKey('buttons.id'))
+    from_button = relationship('Button', back_populates='link')
+
     def to_dict(self):
         """Represent to dict."""
         return {
@@ -132,3 +141,21 @@ class Message(Base):
             'message': self.message,
             'link': self.link.id if self.link else None,
         }
+
+
+class Button(Base):
+    """Buttons."""
+
+    __tablename__ = 'buttons'
+
+    id = Column(Integer, primary_key=True)
+
+    text = Column(Text, nullable=False)
+    message_id = Column(Integer, ForeignKey('messages.id'), nullable=False)
+    message = relationship('Message', back_populates='own_buttons')
+
+    link = relationship(
+        'Message',
+        back_populates='from_button',
+        uselist=False,
+    )

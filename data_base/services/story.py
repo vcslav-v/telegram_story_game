@@ -48,28 +48,40 @@ def get(
     req_body: schemas.GetStory,
 ) -> models.Story:
     """Return story by name."""
-    user = telegram_user.get_or_make_if_new(db, req_body)
-
     story = db.query(models.Story).filter_by(
-        author=user,
         id=req_body.story_id,
     ).first()
     if story:
         return story
 
-    logger.error('Story {story_id} is not exist for user {tg_id}'.format(
+    logger.error('Story {story_id} is not exist'.format(
         story_id=req_body.story_id,
-        tg_id=req_body.tg_id,
+    ))
+    raise ValueError
+
+
+def get_check_author(
+    db: Session,
+    req_body: schemas.GetUserStory,
+) -> models.Story:
+    """Return story by name."""
+    story = db.query(models.Story).filter_by(
+        id=req_body.story_id,
+    ).first()
+    if story and story.author.telegram_id == req_body.tg_id:
+        return story
+    logger.error('Story {story_id} is not exist'.format(
+        story_id=req_body.story_id,
     ))
     raise ValueError
 
 
 def rm(
     db: Session,
-    req_body: schemas.GetStory,
+    req_body: schemas.GetUserStory,
 ) -> dict:
     """Delete story with chapter and mesages."""
-    user_story = get(db, req_body)
+    user_story = get_check_author(db, req_body)
     db.delete(user_story)
     db.commit()
     return {'result': 'ok'}
@@ -80,7 +92,7 @@ def rename(
     req_body: schemas.RenameStory,
 ) -> models.Story:
     """Rename story."""
-    user_story = get(db, req_body)
+    user_story = get_check_author(db, req_body)
     user_story.name = req_body.new_name
     db.commit()
     db.refresh(user_story)

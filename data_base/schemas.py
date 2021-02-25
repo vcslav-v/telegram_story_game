@@ -17,19 +17,26 @@ class MakeStory(TgUser):
     story_name: str
 
 
-class GetStory(TgUser):
+class GetStory(BaseModel):
     """Get story model."""
 
     story_id: int
 
 
-class RenameStory(GetStory):
+class GetUserStory(TgUser):
+    """Get story model."""
+
+    story_id: int
+
+
+
+class RenameStory(GetUserStory):
     """Rename story model."""
 
     new_name: str
 
 
-class MakeChapter(GetStory):
+class MakeChapter(GetUserStory):
     """Chapter model."""
 
     chapter_name: str
@@ -42,13 +49,19 @@ class GetChapter(GetStory):
     chapter_id: int
 
 
-class RenameChapter(GetChapter):
+class GetUserChapter(GetUserStory, GetChapter):
+    """Chapter model."""
+
+    pass
+
+
+class RenameChapter(GetUserChapter):
     """Chapter model."""
 
     new_name: str
 
 
-class ReplaceChapter(GetChapter):
+class ReplaceChapter(GetUserChapter):
     """Chapter model."""
 
     new_num: int
@@ -60,7 +73,7 @@ class GetMsg(GetStory):
     msg_id: int
 
 
-class MakeMsg(GetStory):
+class MakeMsg(GetUserStory):
     """Message model."""
 
     message: Optional[str]

@@ -2,8 +2,8 @@
 import logging
 
 from data_base.db_utils import get_db
+from data_base.schemas import GetStory, GetUserStory, MakeStory, RenameStory
 from data_base.services import story
-from data_base.schemas import MakeStory, GetStory, RenameStory
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -32,7 +32,7 @@ def get(req_body: GetStory, db: Session = Depends(get_db)):
 
 
 @router.post('/rm')
-def rm(req_body: GetStory, db: Session = Depends(get_db)):
+def rm(req_body: GetUserStory, db: Session = Depends(get_db)):
     """Delete story."""
     try:
         status = story.rm(db, req_body)

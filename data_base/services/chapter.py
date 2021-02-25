@@ -13,7 +13,7 @@ def make(
     req_body: schemas.MakeChapter,
 ) -> models.Chapter:
     """Make new chapter."""
-    user_story = story.get(db, req_body)
+    user_story = story.get_check_author(db, req_body)
     next_number = len(user_story.chapters)
     if not req_body.chapter_num or req_body.chapter_num == next_number:
         position = next_number
@@ -82,12 +82,39 @@ def get(
     raise ValueError(err_msg)
 
 
+def get_check_user(
+    db: Session,
+    req_body: schemas.GetUserChapter,
+) -> models.Chapter:
+    """Return chapter model."""
+    user_chapter = db.query(models.Chapter).filter_by(
+        id=req_body.chapter_id,
+        story_id=req_body.story_id,
+    ).first()
+    if user_chapter and (
+        user_chapter.story.author.telegram_id == req_body.tg_id
+    ):
+        return user_chapter
+    err_msg = 'Chapter {id} is not exist for story {story_id}'.format(
+        id=req_body.chapter_id,
+        story_id=req_body.story_id,
+    )
+    logger.error(err_msg)
+    raise ValueError(err_msg)
+
+
 def rename(
     db: Session,
     req_body: schemas.RenameChapter,
 ) -> models.Chapter:
     """Rename chapter."""
-    story_chapter = get(db, req_body)
+    story_chapter = get_check_user(db, req_body)
+    if story_chapter.story.author.telegram_id != req_body.tg_id:
+        logger.error('Story {story_id} is not exist for user {tg_id}'.format(
+            tg_id=req_body.tg_id,
+            story_id=req_body.story_id,
+        ))
+        raise ValueError
     story_chapter.name = req_body.new_name
     db.commit()
     db.refresh(story_chapter)
@@ -99,7 +126,7 @@ def replace(
     req_body: schemas.ReplaceChapter,
 ) -> models.Chapter:
     """Move chapter to new position."""
-    story_chapter = get(db, req_body)
+    story_chapter = get_check_user(db, req_body)
     chapters = story_chapter.story.chapters
     if req_body.new_num < 0 or req_body.new_num > len(chapters) - 1:
         err_msg = 'Position {pos} is wrong'.format(pos=req_body.new_num)

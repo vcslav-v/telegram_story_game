@@ -13,7 +13,7 @@ def make(
     req_body: schemas.MakeMsg,
 ) -> models.Message:
     """Make new message."""
-    user_story = story.get(db, req_body)
+    user_story = story.get_check_author(db, req_body)
     new_msg = models.Message(story=user_story)
     if req_body.message:
         new_msg.message = req_body.message

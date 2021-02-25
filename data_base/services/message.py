@@ -47,3 +47,20 @@ def get(db, req_body: schemas.GetMsg) -> models.Message:
     )
     logger.error(err_msg)
     raise ValueError(err_msg)
+
+
+def get_check_user(db, req_body: schemas.GetUserMsg) -> models.Message:
+    """Return message by id."""
+    msg = db.query(models.Message).filter_by(
+        id=req_body.msg_id,
+        story_id=req_body.story_id,
+    ).first()
+    if msg and msg.story.author.telegram_id == req_body.tg_id:
+        return msg
+
+    err_msg = 'There is not message id - {msg_id} for story {st_id}'.format(
+        msg_id=req_body.msg_id,
+        st_id=req_body.story_id,
+    )
+    logger.error(err_msg)
+    raise ValueError(err_msg)

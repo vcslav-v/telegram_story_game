@@ -3,7 +3,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from data_base import models, schemas
-from data_base.services import story
+from data_base.services import story, message
 
 logger = logging.getLogger(__name__)
 
@@ -145,5 +145,33 @@ def replace(
     return story_chapter
 
 
-# TODO rm
-# TODO set_start message
+def rm(
+    db: Session,
+    req_body: schemas.GetUserChapter,
+) -> dict:
+    """Remove chapter."""
+    story_chapter = get_check_user(db, req_body)
+    next_position = story_chapter.number + 1
+    for another_chapter in story_chapter.story.chapters[next_position:]:
+        another_chapter.number -= 1
+    db.delete(story_chapter)
+    db.commit()
+    return {'result': 'ok'}
+
+
+def set_start_msg(
+    db: Session,
+    req_body: schemas.StartMsgChapter,
+) -> models.Chapter:
+    """Set start msg to chapter."""
+    usr_chapter = get_check_user(db, req_body)
+    req_msg = schemas.GetUserMsg(
+        tg_id=req_body.tg_id,
+        story_id=req_body.story_id,
+        msg_id=req_body.msg_id,
+    )
+    story_msg = message.get_check_user(db, req_msg)
+    usr_chapter.start_message = story_msg
+    db.commit()
+    db.refresh(usr_chapter)
+    return usr_chapter

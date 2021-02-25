@@ -29,7 +29,6 @@ class GetUserStory(TgUser):
     story_id: int
 
 
-
 class RenameStory(GetUserStory):
     """Rename story model."""
 
@@ -71,6 +70,18 @@ class GetMsg(GetStory):
     """Message model."""
 
     msg_id: int
+
+
+class GetUserMsg(GetMsg, GetUserStory):
+    """Message model."""
+
+    pass
+
+
+class StartMsgChapter(GetMsg, GetUserChapter):
+    """Message model."""
+
+    pass
 
 
 class MakeMsg(GetUserStory):

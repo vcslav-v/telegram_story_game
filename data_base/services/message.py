@@ -64,3 +64,11 @@ def get_check_user(db, req_body: schemas.GetUserMsg) -> models.Message:
     )
     logger.error(err_msg)
     raise ValueError(err_msg)
+
+
+def rm(db, req_body: schemas.GetUserMsg) -> dict:
+    """Remove message by id."""
+    msg = get_check_user(db, req_body)
+    db.delete(msg)
+    db.commit()
+    return {'result': 'ok'}

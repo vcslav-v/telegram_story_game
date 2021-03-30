@@ -3,3 +3,5 @@
 *_cache
 __pycache__
 .python-version
+*.log
+*.db

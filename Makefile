@@ -67,14 +67,26 @@ init:
 
 lint:
 	poetry run flake8 $(APP_NAME)
+	poetry run flake8 data_base
 	poetry run mypy $(APP_NAME)
+	poetry run mypy data_base
 
 install:
 	poetry install
 
 test:
 	poetry run pytest tests/
-test-full-diff:
+
+pr_test:
+	docker run --name test-postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=postgres -d -p 5432:5432 postgres
+	sleep 1
+	poetry run alembic upgrade head
+
+stop_test_base:
+	docker kill test-postgres
+	docker rm test-postgres
+
+test-vv:
 	poetry run pytest -vv tests/
 package-install:
 	python3 -m pip -q install poetry
@@ -82,3 +94,24 @@ package-install:
 	python3 -m pip -q install --user dist/*.whl
 coverage:
 	poetry run pytest --cov=$(APP_NAME) --cov-report xml tests/
+
+sqlalchemy-init:
+	poetry add sqlalchemy
+	poetry add psycopg2-binary
+	poetry add alembic
+	poetry run alembic init alembic
+	echo 'exclude = alembic/*' >> setup.cfg
+	touch $(APP_NAME)/models.py
+	poetry add --dev sqlalchemy-stubs
+	echo '"""DataBase models."""' >> $(APP_NAME)/models.py
+	echo '[mypy]' >> setup.cfg
+	echo 'plugins = sqlmypy' >> setup.cfg
+db_revision:
+	docker run --name test-postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=postgres -d -p 5432:5432 postgres
+	sleep 1
+	poetry run alembic revision --autogenerate
+	docker kill test-postgres
+	docker rm test-postgres
+
+db_update:
+	poetry run alembic upgrade head

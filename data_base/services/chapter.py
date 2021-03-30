@@ -17,15 +17,15 @@ def make(
     next_number = len(user_story.chapters)
     if not req_body.chapter_num or req_body.chapter_num == next_number:
         position = next_number
-    elif req_body.chapter_num < next_number:
+    elif -1 < req_body.chapter_num < next_number:
         position = req_body.chapter_num
         _make_place_for_insert_chapter(
             user_story.chapters,
             req_body.chapter_num,
         )
     else:
-        logger.error('Chapter number bigger than exist numbers')
-        raise ValueError('Chapter number bigger than exist numbers')
+        logger.error('Wrong chapter number')
+        raise ValueError('Wrong chapter number')
 
     new_chapter = models.Chapter(
         name=req_body.chapter_name,
@@ -95,10 +95,15 @@ def get_check_user(
         user_chapter.story.author.telegram_id == req_body.tg_id
     ):
         return user_chapter
-    err_msg = 'Chapter {id} is not exist for story {story_id}'.format(
-        id=req_body.chapter_id,
-        story_id=req_body.story_id,
-    )
+    if not user_chapter:
+        err_msg = 'Chapter {id} is not exist for story {story_id}'.format(
+            id=req_body.chapter_id,
+            story_id=req_body.story_id,
+        )
+    elif user_chapter.story.author.telegram_id != req_body.tg_id:
+        err_msg = 'Story {story_id} - access denied'.format(
+            story_id=req_body.story_id,
+        )
     logger.error(err_msg)
     raise ValueError(err_msg)
 
@@ -109,12 +114,6 @@ def rename(
 ) -> models.Chapter:
     """Rename chapter."""
     story_chapter = get_check_user(db, req_body)
-    if story_chapter.story.author.telegram_id != req_body.tg_id:
-        logger.error('Story {story_id} is not exist for user {tg_id}'.format(
-            tg_id=req_body.tg_id,
-            story_id=req_body.story_id,
-        ))
-        raise ValueError
     story_chapter.name = req_body.new_name
     db.commit()
     db.refresh(story_chapter)

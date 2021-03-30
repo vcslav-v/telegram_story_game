@@ -29,16 +29,15 @@ def make(
     try:
         db.commit()
     except IntegrityError:
-        logger.error(
-            (
-                'Cant make new story because story exist already. '
-                'make a story - tg_id = {tg_id}, str_name = {str_name}'
-            ).format(
-                tg_id=req_body.tg_id,
-                str_name=req_body.story_name,
-            ),
+        err_msg = (
+            'Cant make new story because story exist already. '
+            'make a story - tg_id = {tg_id}, str_name = {str_name}'
+        ).format(
+            tg_id=req_body.tg_id,
+            str_name=req_body.story_name,
         )
-        raise ValueError
+        logger.error(err_msg)
+        raise ValueError(err_msg)
     db.refresh(new_story)
     return new_story
 
@@ -53,27 +52,28 @@ def get(
     ).first()
     if story:
         return story
-
-    logger.error('Story {story_id} is not exist'.format(
+    err_msg = 'Story {story_id} is not exist'.format(
         story_id=req_body.story_id,
-    ))
-    raise ValueError
+    )
+    logger.error(err_msg)
+    raise ValueError(err_msg)
 
 
 def get_check_author(
     db: Session,
     req_body: schemas.GetUserStory,
 ) -> models.Story:
-    """Return story by name."""
+    """Return story by id."""
     story = db.query(models.Story).filter_by(
         id=req_body.story_id,
     ).first()
     if story and story.author.telegram_id == req_body.tg_id:
         return story
-    logger.error('Story {story_id} is not exist'.format(
+    err_msg = 'Story {story_id} is not exist or access denied'.format(
         story_id=req_body.story_id,
-    ))
-    raise ValueError
+    )
+    logger.error(err_msg)
+    raise ValueError(err_msg)
 
 
 def rm(

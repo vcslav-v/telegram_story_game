@@ -16,8 +16,8 @@ def make(req_body: MakeStory, db: Session = Depends(get_db)):
     """Make and return new story."""
     try:
         new_story = story.make(db, req_body)
-    except ValueError:
-        return {'error': 'Story exist already.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return new_story.to_dict()
 
 
@@ -26,8 +26,8 @@ def get(req_body: GetStory, db: Session = Depends(get_db)):
     """Get exist story."""
     try:
         resp_story = story.get(db, req_body)
-    except ValueError:
-        return {'error': 'Story is not exist.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return resp_story.to_dict()
 
 
@@ -36,8 +36,8 @@ def rm(req_body: GetUserStory, db: Session = Depends(get_db)):
     """Delete story."""
     try:
         status = story.rm(db, req_body)
-    except ValueError:
-        return {'error': 'Story is not exist.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return status
 
 
@@ -46,6 +46,6 @@ def rename(req_body: RenameStory, db: Session = Depends(get_db)):
     """Rename story."""
     try:
         resp_story = story.rename(db, req_body)
-    except ValueError:
-        return {'error': 'Story is not exist.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return resp_story

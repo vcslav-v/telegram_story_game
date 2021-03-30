@@ -6,7 +6,7 @@ from os import environ
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI')
+SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI') or 'sqlite:///foo.db'
 
 LOGGING_CONFIG = {
     'version': 1,

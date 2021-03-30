@@ -144,6 +144,7 @@ class Message(Base):
             'chapter_id': self.chapter_id,
             'message': self.message,
             'link': self.link.id if self.link else None,
+            'parrent': self.parent_id if self.parent_id else None,
             'buttons': [btn.to_dict() for btn in self.own_buttons]
         }
 

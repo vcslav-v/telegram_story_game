@@ -18,13 +18,23 @@ def make(
     if req_body.message:
         new_msg.message = req_body.message
     if req_body.next_message_id:
-        req_msg = schemas.GetMsg(
+        req_msg = schemas.GetUserMsg(
             tg_id=req_body.tg_id,
             story_id=req_body.story_id,
             msg_id=req_body.next_message_id,
         )
-        next_message = get(db, req_msg)
+        next_message = get_check_user(db, req_msg)
         new_msg.link = next_message
+    if req_body.parrent_message_id:
+        req_msg = schemas.GetUserMsg(
+            tg_id=req_body.tg_id,
+            story_id=req_body.story_id,
+            msg_id=req_body.parrent_message_id,
+        )
+        parrent_msg = get_check_user(db, req_msg)
+        parrent_msg.link = new_msg
+        db.add(parrent_msg)
+
     db.add(new_msg)
     db.commit()
     db.refresh(new_msg)
@@ -59,11 +69,16 @@ def get_check_user(
     ).first()
     if msg and msg.story.author.telegram_id == req_body.tg_id:
         return msg
-
-    err_msg = 'There is not message id - {msg_id} for story {st_id}'.format(
-        msg_id=req_body.msg_id,
-        st_id=req_body.story_id,
-    )
+    if not msg:
+        err_msg = 'There is not message id - {msg_id} for story {st_id}'.format(
+            msg_id=req_body.msg_id,
+            st_id=req_body.story_id,
+        )
+    elif msg.story.author.telegram_id != req_body.tg_id:
+        err_msg = 'For message id - {msg_id} for story {st_id} access denied'.format(
+            msg_id=req_body.msg_id,
+            st_id=req_body.story_id,
+        )
     logger.error(err_msg)
     raise ValueError(err_msg)
 
@@ -82,7 +97,12 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
     if req_body.message:
         msg.message = req_body.message
     if req_body.next_message_id:
-        next_message = get(db, req_body)
+        req_msg = schemas.GetUserMsg(
+            msg_id=req_body.next_message_id,
+            story_id=req_body.story_id,
+            tg_id=req_body.tg_id,
+        )
+        next_message = get_check_user(db, req_msg)
         msg.link = next_message
     db.commit()
     db.refresh(msg)

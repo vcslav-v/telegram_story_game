@@ -14,11 +14,11 @@ router = APIRouter()
 
 @router.post('/make')
 def make(req_body: MakeChapter, db: Session = Depends(get_db)):
-    """Make and return new story."""
+    """Make and return new chapter."""
     try:
         new_chapter = chapter.make(db, req_body)
-    except ValueError:
-        return {'error': 'Chapter exist already.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return new_chapter.to_dict()
 
 
@@ -27,8 +27,8 @@ def get(req_body: GetChapter, db: Session = Depends(get_db)):
     """Get and return new story."""
     try:
         story_chapter = chapter.get(db, req_body)
-    except ValueError:
-        return {'error': 'Chapter exist already.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return story_chapter.to_dict()
 
 
@@ -37,8 +37,8 @@ def rename(req_body: RenameChapter, db: Session = Depends(get_db)):
     """Get and return new story."""
     try:
         story_chapter = chapter.rename(db, req_body)
-    except ValueError:
-        return {'error': 'Chapter exist already.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return story_chapter.to_dict()
 
 
@@ -47,8 +47,8 @@ def replace(req_body: ReplaceChapter, db: Session = Depends(get_db)):
     """Get and return new story."""
     try:
         story_chapter = chapter.replace(db, req_body)
-    except ValueError:
-        return {'error': 'Chapter exist already.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return story_chapter.to_dict()
 
 
@@ -57,8 +57,8 @@ def rm(req_body: GetUserChapter, db: Session = Depends(get_db)):
     """Get and return new story."""
     try:
         status = chapter.rm(db, req_body)
-    except ValueError:
-        return {'error': 'Chapter exist already.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return status
 
 
@@ -67,6 +67,6 @@ def set_start_msg(req_body: StartMsgChapter, db: Session = Depends(get_db)):
     """Get and return new story."""
     try:
         story_chapter = chapter.set_start_msg(db, req_body)
-    except ValueError:
-        return {'error': 'Chapter exist already.'}
+    except ValueError as val_err:
+        return {'error': val_err.args}
     return story_chapter.to_dict()

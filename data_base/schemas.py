@@ -89,6 +89,7 @@ class MakeMsg(GetUserStory):
 
     message: Optional[str]
     next_message_id: Optional[int]
+    parrent_message_id: Optional[int]
 
 
 class EditMsg(GetUserMsg):
@@ -100,6 +101,7 @@ class AddButton(GetUserMsg):
     """Button model."""
 
     text: str
+    link_to_msg_id: Optional[int]
 
 
 class GetMsgButton(GetUserMsg):
@@ -108,8 +110,7 @@ class GetMsgButton(GetUserMsg):
     button_id: int
 
 
-class EditButton(GetMsgButton):
+class EditButton(AddButton):
     """Button model."""
 
     text: Optional[str]
-    link_to_msg_id: Optional[int]

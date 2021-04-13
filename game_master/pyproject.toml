@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "gamemaster_bot"
+version = "0.1.0"
+description = ""
+authors = ["vaclav-v"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pyTelegramBotAPI = "^3.7.7"
+requests = "^2.25.1"
+redis = "^3.5.3"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.9.0"
+mypy = "^0.812"
+pytest = "^6.2.2"
+pytest-cov = "^2.11.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

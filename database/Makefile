@@ -115,3 +115,6 @@ db_revision:
 
 db_update:
 	poetry run alembic upgrade head
+
+run:
+	poetry run uvicorn data_base.main:app --reload

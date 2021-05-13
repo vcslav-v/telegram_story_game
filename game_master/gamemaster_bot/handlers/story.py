@@ -8,7 +8,8 @@ from gamemaster_bot.menu import story
 )
 def show_story(call):
     params = tools.get_call_back_params(call.data)
-    _story = story.Story(params.get('story_id'))
+    user_context = mem.UserContext(call.from_user.id)
+    _story = story.Story(params.get('story_id') or int(user_context.get_context('story_id')))
     _story.show(call.from_user.id)
 
 
@@ -39,6 +40,15 @@ def rename_story(call):
 )
 def make_story(call):
     story.get_name_for_new_story(call.from_user.id)
+
+
+@bot.callback_query_handler(
+    func=tools.is_correct_prefix(story.SHOW_CHAPTERS_PREFIX)
+)
+def show_chapters(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _story = story.Story(int(user_context.get_context('story_id')))
+    _story.show_chapters(call.from_user.id)
 
 
 @bot.message_handler(

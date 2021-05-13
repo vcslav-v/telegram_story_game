@@ -3,6 +3,7 @@ import json
 import re
 from gamemaster_bot import bot
 from gamemaster_bot.mem import UserContext
+from typing import List
 
 
 def make_call_back(call_to: str, data: dict = {}):
@@ -34,17 +35,21 @@ def get_call_back_params(call_data: str):
     return json.loads(call_data)
 
 
-def make_inline_keyboard(buttons: dict, row_width=1):
+def make_inline_keyboard(buttons_rows: List):
     markup = InlineKeyboardMarkup()
-    markup.row_width = row_width
-    for key, value in buttons.items():
-        markup.add(
-            InlineKeyboardButton(key, callback_data=value),
-        )
+    print(buttons_rows)
+    for row in buttons_rows:
+        buttons_row = []
+        for button in row:
+            print(button)
+            key, call_data = button
+            buttons_row.append(InlineKeyboardButton(key, callback_data=call_data))
+        print(buttons_row)
+        markup.add(*buttons_row)
     return markup
 
 
-def send_menu_msg(tg_id: int, text: str, buttons: dict = {}, row_width=1, exit_menu=False):
+def send_menu_msg(tg_id: int, text: str, buttons: List = [], row_width=1, exit_menu=False):
     user_context = UserContext(tg_id)
     if user_context.get_status() == 'in_menu':
         bot.edit_message_text(
@@ -54,7 +59,9 @@ def send_menu_msg(tg_id: int, text: str, buttons: dict = {}, row_width=1, exit_m
             reply_markup=make_inline_keyboard(buttons),
         )
     else:
-        msg_info = bot.send_message(tg_id, text, reply_markup=make_inline_keyboard(buttons))
+        msg_info = bot.send_message(
+            tg_id, text, reply_markup=make_inline_keyboard(buttons)
+        )
         user_context.set_status('in_menu')
         user_context.update_context('active_menu_msg_id', msg_info.message_id)
     if exit_menu:

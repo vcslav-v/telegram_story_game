@@ -13,7 +13,7 @@ def is_call_to(key: str, expext_val: str):
 
 
 def is_wait_user(tg_id: int):
-    if r.keys('wait*:2601798'):
+    if r.keys(f'wait*:{tg_id}'):
         return True
     return False
 
@@ -26,9 +26,9 @@ def flush_user(tg_id: int):
 class UserContext:
     def __init__(self, tg_id: int):
         self.tg_id = tg_id
-        self._context_call = '{}:context'.format(tg_id)
-        self._status_call = '{}:status'.format(tg_id)
-        self._params_call = '{}:params'.format(tg_id)
+        self._context_call = f'{tg_id}:context'
+        self._status_call = f'{tg_id}:status'
+        self._params_call = f'{tg_id}:params'
 
     def get_context(self, key):
         return r.hget(self._context_call, key)

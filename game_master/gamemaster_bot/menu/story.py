@@ -1,15 +1,14 @@
 import json
-from os import environ
-from gamemaster_bot import mem, tools
-from gamemaster_bot.menu import tg_user
+from gamemaster_bot import mem, tools, DB_URL
+from gamemaster_bot.menu import tg_user, chapter
 
 import requests
 
-DB_URL = environ.get('DB_URL') or 'http://127.0.0.1:8000/{item}/{cmd}'
 SHOW_PREFIX = 'show_story?'
 MAKE_PREFIX = 'make_story?'
 RENAME_PREFIX = 'rename_story?'
 RM_PREFIX = 'rm_story?'
+SHOW_CHAPTERS_PREFIX = 'show_story_chapters?'
 
 
 def get_name_for_new_story(tg_id: int):
@@ -47,28 +46,33 @@ class Story:
                 json={'story_id': story_id},
             ).text
         )
-        self.id = int(story_resp['id'])
-        self.name = story_resp['name']
-        self.author_id = int(story_resp['author_id'])
+        self.id = int(story_resp.get('id'))
+        self.name = story_resp.get('name')
+        self.author_id = int(story_resp.get('author_id'))
+        self.chapters = sorted(
+            story_resp.get('chapters'),
+            key=lambda chapter: int(chapter.get('number'))
+        )
 
     def show(self, tg_id: int):
         msg = self.name
         user_context = mem.UserContext(tg_id)
         user_context.update_context('story_id', str(self.id))
 
-        buttons = {
-            'Переименовать': tools.make_call_back(RENAME_PREFIX),
-            'Удалить': tools.make_call_back(RM_PREFIX, {'is_sure': False}),
-            'Все истории': tools.make_call_back(tg_user.SHOW_STORIES_PREFIX),
-        }
+        buttons = [
+            [('Посмотреть главы', tools.make_call_back(SHOW_CHAPTERS_PREFIX))],
+            [('Переименовать', tools.make_call_back(RENAME_PREFIX))],
+            [('Удалить', tools.make_call_back(RM_PREFIX, {'is_sure': False}))],
+            [('Все истории', tools.make_call_back(tg_user.SHOW_STORIES_PREFIX))],
+        ]
         tools.send_menu_msg(tg_id, msg, buttons)
 
     def make_sure_rm(self, tg_id: int):
         msg = 'Вы уверены, что хотите удалить историю: "{}"'.format(self.name)
-        buttons = {
-            'Да': tools.make_call_back(RM_PREFIX, {'is_sure': True}),
-            'Нет': tools.make_call_back(SHOW_PREFIX),
-        }
+        buttons = [
+            [('Да', tools.make_call_back(RM_PREFIX, {'is_sure': True}))],
+            [('Нет', tools.make_call_back(SHOW_PREFIX))],
+        ]
         tools.send_menu_msg(tg_id, msg, buttons)
 
     def rm(self, tg_id: int):
@@ -86,9 +90,9 @@ class Story:
         else:
             msg = result.get('error')
 
-        buttons = {
-            'Мои истории': tools.make_call_back(tg_user.SHOW_STORIES_PREFIX),
-        }
+        buttons = [
+            [('Мои истории', tools.make_call_back(tg_user.SHOW_STORIES_PREFIX))],
+        ]
         tools.send_menu_msg(tg_id, msg, buttons)
 
     def get_new_name(self, tg_id: int):
@@ -115,3 +119,41 @@ class Story:
         else:
             self.name = new_name
             self.show(tg_id)
+
+    def show_chapters(self, tg_id: int):
+        msg = 'Главы истории {}.'.format(self.name)
+        buttons = []
+        for _chapter in self.chapters:
+            buttons.append(
+                [
+                    (
+                        _chapter.get('name'),
+                        tools.make_call_back(chapter.SHOW_PREFIX, {
+                            'chapter_id': _chapter.get('id')
+                        })
+                    ),
+                ]
+            )
+            settings_row = []
+            if int(_chapter.get('number')) != 0:
+                settings_row.append(
+                        (
+                            'Up', tools.make_call_back(chapter.UP_PREFIX, {
+                                'chapter_id': _chapter.get('id'),
+                            })
+                        )
+                )
+            if int(_chapter.get('number')) != len(self.chapters) - 1:
+                settings_row.append(
+                        (
+                            'Down', tools.make_call_back(chapter.DOWN_PREFIX, {
+                                'chapter_id': _chapter.get('id'),
+                            })
+                        )
+                )
+            buttons.append(settings_row)
+        buttons.append(
+                [('Новая глава', tools.make_call_back(chapter.MAKE_PREFIX))]
+            )
+
+        tools.send_menu_msg(tg_id, msg, buttons, 3)

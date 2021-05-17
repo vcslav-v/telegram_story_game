@@ -1,5 +1,5 @@
 """DataBase models."""
-from sqlalchemy import Column, ForeignKey, Integer, Text
+from sqlalchemy import Column, ForeignKey, Integer, Text, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -44,12 +44,6 @@ class Story(Base):
         cascade='delete-orphan,delete',
     )
 
-    messages = relationship(
-        'Message',
-        back_populates='story',
-        cascade='delete-orphan,delete',
-    )
-
     def to_dict(self):
         """Represent to dict."""
         return {
@@ -81,21 +75,19 @@ class Chapter(Base):
     number = Column(Integer, nullable=False)
     name = Column(Text, nullable=False)
 
-    start_message = relationship(
-        'Message', uselist=False, back_populates='start_chapter_point_for',
+    messages = relationship(
+        'Message',
+        back_populates='chapter',
+        cascade='delete-orphan,delete',
     )
 
     def to_dict(self):
         """Represent to dict."""
-        start_message = (
-            self.start_message.to_dict() if self.start_message else None
-        )
         return {
             'id': self.id,
             'name': self.name,
             'number': self.number,
             'story_id': self.story_id,
-            'start_message': start_message,
         }
 
 
@@ -106,18 +98,14 @@ class Message(Base):
 
     id = Column(Integer, primary_key=True)
 
-    story_id = Column(Integer, ForeignKey('stories.id'), nullable=False)
-    story = relationship(
-        'Story',
+    chapter_id = Column(Integer, ForeignKey('chapters.id'), nullable=False)
+    chapter = relationship(
+        'Chapter',
         passive_deletes=True,
         back_populates='messages',
     )
 
-    chapter_id = Column(Integer, ForeignKey('chapters.id'))
-    start_chapter_point_for = relationship(
-        'Chapter',
-        back_populates='start_message',
-    )
+    is_start_chapter = Column(Boolean, default=False)
 
     message = Column(Text)
     parent_id = Column(Integer, ForeignKey('messages.id'))
@@ -127,25 +115,25 @@ class Message(Base):
         'Button',
         back_populates='parrent_message',
         cascade='delete-orphan,delete',
-        foreign_keys="[Button.parrent_message_id]"
+        foreign_keys='[Button.parrent_message_id]',
     )
 
     from_button = relationship(
         'Button',
         back_populates='next_message',
-        foreign_keys="[Button.next_message_id]"
+        foreign_keys='[Button.next_message_id]',
     )
 
     def to_dict(self):
         """Represent to dict."""
         return {
             'id': self.id,
-            'story_id': self.story_id,
             'chapter_id': self.chapter_id,
             'message': self.message,
+            'is_start_chapter': self.is_start_chapter,
             'link': self.link.id if self.link else None,
             'parrent': self.parent_id if self.parent_id else None,
-            'buttons': [btn.to_dict() for btn in self.own_buttons]
+            'buttons': [btn.to_dict() for btn in self.own_buttons],
         }
 
 

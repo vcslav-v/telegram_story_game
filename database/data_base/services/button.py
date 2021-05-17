@@ -20,7 +20,7 @@ def add(
     if req_body.link_to_msg_id:
         req_msg = schemas.GetUserMsg(
             tg_id=req_body.tg_id,
-            story_id=req_body.story_id,
+            chapter_id=req_body.chapter_id,
             msg_id=req_body.link_to_msg_id,
         )
         req_msg.msg_id = req_body.link_to_msg_id
@@ -78,7 +78,7 @@ def edit(
     if req_body.link_to_msg_id:
         req_msg = schemas.GetUserMsg(
             tg_id=req_body.tg_id,
-            story_id=req_body.story_id,
+            chapter_id=req_body.chapter_id,
             msg_id=req_body.link_to_msg_id,
         )
         req_msg.msg_id = req_body.link_to_msg_id

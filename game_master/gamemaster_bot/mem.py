@@ -58,6 +58,9 @@ class UserContext:
         r.delete(self._params_call)
         return r.hset(self._params_call, mapping=params)
 
+    def flush_params(self):
+        r.delete(self._params_call)
+
     def flush_all(self):
         for key in r.keys('{}:*'.format(self.tg_id)):
             r.delete(key)

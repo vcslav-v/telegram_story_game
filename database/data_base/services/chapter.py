@@ -156,21 +156,3 @@ def rm(
     db.delete(story_chapter)
     db.commit()
     return {'result': 'ok'}
-
-
-def set_start_msg(
-    db: Session,
-    req_body: schemas.StartMsgChapter,
-) -> models.Chapter:
-    """Set start msg to chapter."""
-    usr_chapter = get_check_user(db, req_body)
-    req_msg = schemas.GetUserMsg(
-        tg_id=req_body.tg_id,
-        story_id=req_body.story_id,
-        msg_id=req_body.msg_id,
-    )
-    story_msg = message.get_check_user(db, req_msg)
-    usr_chapter.start_message = story_msg
-    db.commit()
-    db.refresh(usr_chapter)
-    return usr_chapter

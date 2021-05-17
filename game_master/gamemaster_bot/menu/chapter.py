@@ -1,5 +1,5 @@
 from gamemaster_bot import tools, mem, DB_URL
-from gamemaster_bot.menu import story
+from gamemaster_bot.menu import story, message
 
 import requests
 import json
@@ -59,11 +59,20 @@ class Chapter:
         user_context = mem.UserContext(tg_id)
         user_context.update_context('chapter_id', str(self.id))
 
-        buttons = [
+        if self.start_message:
+            buttons = []
+        else:
+            buttons = [
+                [('Написать первое сообщение', tools.make_call_back(message.MAKE_PREFIX, {
+                    'is_start_chapter_msg': True,
+                }))]
+            ]
+
+        buttons.extend([
             [('Переименовать', tools.make_call_back(RENAME_PREFIX))],
             [('Удалить', tools.make_call_back(RM_PREFIX, {'is_sure': False}))],
             [('Все главы', tools.make_call_back(story.SHOW_CHAPTERS_PREFIX))],
-        ]
+        ])
         tools.send_menu_msg(tg_id, msg, buttons)
 
     def replace(self, new_num: int, tg_id: int):

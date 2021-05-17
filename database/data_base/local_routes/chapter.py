@@ -3,7 +3,7 @@ import logging
 
 from data_base.db_utils import get_db
 from data_base.schemas import (GetChapter, GetUserChapter, MakeChapter,
-                               RenameChapter, ReplaceChapter, StartMsgChapter)
+                               RenameChapter, ReplaceChapter)
 from data_base.services import chapter
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -60,13 +60,3 @@ def rm(req_body: GetUserChapter, db: Session = Depends(get_db)):
     except ValueError as val_err:
         return {'error': val_err.args}
     return status
-
-
-@router.post('/set_start_msg')
-def set_start_msg(req_body: StartMsgChapter, db: Session = Depends(get_db)):
-    """Get and return new story."""
-    try:
-        story_chapter = chapter.set_start_msg(db, req_body)
-    except ValueError as val_err:
-        return {'error': val_err.args}
-    return story_chapter.to_dict()

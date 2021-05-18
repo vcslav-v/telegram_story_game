@@ -35,6 +35,18 @@ def edit_msg(call):
     _message.get_new_msg(call.from_user.id)
 
 
+@bot.callback_query_handler(
+    func=tools.is_correct_prefix(message.ADD_BUTTON_PREFIX)
+)
+def add_btn_msg(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _message = message.Message(
+        user_context.get_context('chapter_id'),
+        user_context.get_context('message_id'),
+        )
+    _message.get_new_btn(call.from_user.id)
+
+
 @bot.message_handler(
     content_types='text',
     func=tools.is_wait_line_for(message.MAKE_PREFIX),
@@ -57,3 +69,17 @@ def wait_line_edit(msg):
         user_context.get_context('message_id'),
         )
     _message.edit(msg.from_user.id, msg.text)
+
+
+@bot.message_handler(
+    content_types='text',
+    func=tools.is_wait_line_for(message.ADD_BUTTON_PREFIX),
+)
+def wait_line_add_btn(msg):
+    user_context = mem.UserContext(msg.from_user.id)
+    user_context.rm_status()
+    _message = message.Message(
+        user_context.get_context('chapter_id'),
+        user_context.get_context('message_id'),
+        )
+    _message.add_button(msg.from_user.id, msg.text)

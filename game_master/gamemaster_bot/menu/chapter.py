@@ -48,11 +48,17 @@ class Chapter:
                 json={'story_id': story_id, 'chapter_id': chapter_id},
             ).text
         )
+        first_msg = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='get_start_for_chapter'),
+                json={'chapter_id': chapter_id},
+            ).text
+        )
         self.id = int(chapter_resp.get('id'))
         self.name = chapter_resp.get('name')
         self.number = int(chapter_resp.get('number'))
         self.story_id = int(chapter_resp.get('story_id'))
-        self.start_message = chapter_resp.get('start_message')
+        self.start_message = first_msg
 
     def show(self, tg_id: int):
         msg = self.name

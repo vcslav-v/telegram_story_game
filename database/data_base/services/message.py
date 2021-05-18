@@ -4,6 +4,7 @@ import logging
 from data_base import models, schemas
 from data_base.services import chapter
 from sqlalchemy.orm import Session
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,14 @@ def get(db: Session, req_body: schemas.GetMsg) -> models.Message:
     )
     logger.error(err_msg)
     raise ValueError(err_msg)
+
+
+def get_start_for_chapter(db: Session, req_body: schemas.GetMsgStartForChapter) -> Optional[models.Message]:
+    """Return start message for chapter."""
+    return db.query(models.Message).filter_by(
+        chapter_id=req_body.chapter_id,
+        is_start_chapter=True,
+    ).first()
 
 
 def get_check_user(

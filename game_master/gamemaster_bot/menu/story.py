@@ -152,8 +152,9 @@ class Story:
                         )
                 )
             buttons.append(settings_row)
-        buttons.append(
-                [('Новая глава', tools.make_call_back(chapter.MAKE_PREFIX))]
-            )
+        buttons.extend([
+                [('Новая глава', tools.make_call_back(chapter.MAKE_PREFIX))],
+                [('Назад', tools.make_call_back(SHOW_PREFIX))],
+        ])
 
         tools.send_menu_msg(tg_id, msg, buttons, 3)

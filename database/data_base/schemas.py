@@ -73,6 +73,11 @@ class GetMsg(BaseModel):
     msg_id: int
 
 
+class GetMsgStartForChapter(BaseModel):
+
+    chapter_id: int
+
+
 class GetUserMsg(TgUser, GetMsg):
     """Message model."""
 

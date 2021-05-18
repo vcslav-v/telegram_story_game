@@ -1,9 +1,13 @@
 from gamemaster_bot import tools, mem, DB_URL
+from gamemaster_bot.menu import chapter
 
 import requests
 import json
 
 MAKE_PREFIX = 'make_msg?'
+SHOW_PREFIX = 'show_msg?'
+ADD_BUTTON_PREFIX = 'add_btn_msg?'
+EDIT_PREFIX = 'edit_msg?'
 
 
 def get_new_msg(tg_id: int, is_start_chapter_msg: bool = False):
@@ -58,5 +62,39 @@ class Message:
     def show(self, tg_id: int):
         text = self.message
         user_context = mem.UserContext(tg_id)
-        user_context.update_context('msg_id', str(self.id))
-        tools.send_menu_msg(tg_id, text)
+        user_context.rm_status()
+        user_context.update_context('message_id', str(self.id))
+        buttons = [
+                [('Редактировать', tools.make_call_back(EDIT_PREFIX))],
+                [('К главе', tools.make_call_back(chapter.SHOW_PREFIX))],
+            ]
+        tools.send_menu_msg(tg_id, text, buttons)
+
+    def get_new_msg(self, tg_id: int):
+        text = f'Прошлое сообщение:\n{self.message}\n\nНовый вариант:'
+        buttons = [
+                [('Назад', tools.make_call_back(SHOW_PREFIX))],
+            ]
+        tools.send_menu_msg(tg_id, text, buttons)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': EDIT_PREFIX})
+
+    def edit(self, tg_id: int, text: str):
+        edit_msg_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='edit'),
+                json={
+                    'msg_id': self.id,
+                    'chapter_id': self.chapter_id,
+                    'tg_id': tg_id,
+                    'message': text,
+                },
+            ).text
+        )
+        if edit_msg_resp.get('error'):
+            msg = edit_msg_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.message = text
+            self.show(tg_id)

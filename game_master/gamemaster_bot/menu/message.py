@@ -12,7 +12,12 @@ EDIT_BUTTON_PREFIX = 'edit_btn_msg?'
 EDIT_PREFIX = 'edit_msg?'
 
 
-def get_new_msg(tg_id: int, is_start_chapter_msg: bool = False):
+def get_new_msg(
+    tg_id: int,
+    is_start_chapter_msg: bool = False,
+    from_msg_id: int = None,
+    from_btn_id: int = None,
+):
     msg = 'Ваше сообщение:'
     tools.send_menu_msg(tg_id, msg, exit_menu=True)
     user_context = mem.UserContext(tg_id)
@@ -21,6 +26,8 @@ def get_new_msg(tg_id: int, is_start_chapter_msg: bool = False):
         {
             'call_to': MAKE_PREFIX,
             'is_start_chapter_msg': '1' if is_start_chapter_msg else '',
+            'from_msg_id': str(from_msg_id) if from_msg_id else '',
+            'from_btn_id': str(from_btn_id) if from_btn_id else '',
         }
     )
 
@@ -28,6 +35,8 @@ def get_new_msg(tg_id: int, is_start_chapter_msg: bool = False):
 def make_new_msg(tg_id: int, msg: str):
     user_context = mem.UserContext(tg_id)
     params = user_context.get_params()
+    from_msg_id = params.get('from_msg_id')
+    from_btn_id = params.get('from_btn_id')
     new_msg_resp = json.loads(
             requests.post(
                 DB_URL.format(item='message', cmd='make'),
@@ -36,10 +45,22 @@ def make_new_msg(tg_id: int, msg: str):
                     'story_id': user_context.get_context('story_id'),
                     'chapter_id': user_context.get_context('chapter_id'),
                     'message': msg,
-                    'is_start_msg': True if params.get('is_start_chapter_msg') else False
+                    'parrent_message_id': from_msg_id if from_msg_id and not from_btn_id else None,
+                    'is_start_msg': True if params.get('is_start_chapter_msg') else False,
                 },
             ).text
         )
+    if from_msg_id and from_btn_id:
+        requests.post(
+                DB_URL.format(item='message', cmd='edit_button'),
+                json={
+                    'tg_id': tg_id,
+                    'msg_id': from_msg_id,
+                    'chapter_id': user_context.get_context('chapter_id'),
+                    'button_id': from_btn_id,
+                    'link_to_msg_id': new_msg_resp.get('id'),
+                },
+            )
     user_context.flush_params()
     _message = Message(user_context.get_context('chapter_id'), new_msg_resp.get('id'))
     _message.show(tg_id)
@@ -70,7 +91,10 @@ class Message:
         for btn in self.buttons:
             buttons.extend([
                 [
-                    (btn['text'], tools.make_call_back(ADD_BUTTON_PREFIX))
+                    (btn['text'], tools.make_call_back(MAKE_PREFIX, {
+                        'from_msg_id': self.id,
+                        'from_btn_id': btn['id'],
+                    }))
                 ],
                 [
                     ('Удалить ответ', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']})),
@@ -80,6 +104,11 @@ class Message:
         buttons.extend([
             [
                 ('Добавить ответ', tools.make_call_back(ADD_BUTTON_PREFIX)),
+            ],
+            [
+                ('Добавить связанное сообшение', tools.make_call_back(MAKE_PREFIX, {
+                        'from_msg_id': self.id,
+                })),
             ],
             [
                 ('Редактировать', tools.make_call_back(EDIT_PREFIX)),

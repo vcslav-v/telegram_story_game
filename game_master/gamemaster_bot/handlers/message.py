@@ -8,7 +8,12 @@ from gamemaster_bot.menu import message
 )
 def make_msg(call):
     params = tools.get_call_back_params(call.data)
-    message.get_new_msg(call.from_user.id, params.get('is_start_chapter_msg'))
+    message.get_new_msg(
+        call.from_user.id,
+        params.get('is_start_chapter_msg'),
+        params.get('from_msg_id'),
+        params.get('from_btn_id'),
+    )
 
 
 @bot.callback_query_handler(

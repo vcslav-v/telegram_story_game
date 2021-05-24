@@ -73,7 +73,8 @@ class Message:
                     (btn['text'], tools.make_call_back(ADD_BUTTON_PREFIX))
                 ],
                 [
-                    ('Удалить ответ', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']}))
+                    ('Удалить ответ', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']})),
+                    ('Изменить текст', tools.make_call_back(EDIT_BUTTON_PREFIX, {'btn_id': btn['id']})),
                 ],
             ])
         buttons.extend([
@@ -167,6 +168,37 @@ class Message:
             tools.send_menu_msg(tg_id, msg)
         else:
             self.message = text
+            self.show(tg_id)
+
+    def get_text_btn(self, tg_id: int, btn_id: int):
+        btn = list(btn for btn in self.buttons if btn.get('id') == btn_id)[0]
+        text = f'Текущий ответ: {btn["text"]}\n\n Новый ответ:'
+        buttons = [
+                [('Назад', tools.make_call_back(SHOW_PREFIX))],
+            ]
+        tools.send_menu_msg(tg_id, text, buttons)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': EDIT_BUTTON_PREFIX, 'btn_id': btn_id})
+
+    def edit_text_btn(self,tg_id: int, text: str, btn_id: int):
+        edit_btn_msg_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='edit_button'),
+                json={
+                    'msg_id': self.id,
+                    'chapter_id': self.chapter_id,
+                    'tg_id': tg_id,
+                    'button_id': btn_id,
+                    'text': text,
+                },
+            ).text
+        )
+        if edit_btn_msg_resp.get('error'):
+            msg = edit_btn_msg_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.buttons = edit_btn_msg_resp.get('buttons')
             self.show(tg_id)
 
     def make_sure_rm_btn(self, tg_id: int, btn_id: int):

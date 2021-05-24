@@ -55,14 +55,12 @@ def get(db: Session, req_body: schemas.GetMsg) -> models.Message:
     """Return message by id."""
     msg = db.query(models.Message).filter_by(
         id=req_body.msg_id,
-        chapter_id=req_body.chapter_id,
     ).first()
     if msg:
         return msg
 
-    err_msg = 'There is not message id - {msg_id} for chapter {st_id}'.format(
+    err_msg = 'There is not message id - {msg_id}'.format(
         msg_id=req_body.msg_id,
-        st_id=req_body.chapter_id,
     )
     logger.error(err_msg)
     raise ValueError(err_msg)
@@ -112,7 +110,6 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
     if req_body.next_message_id:
         req_msg = schemas.GetUserMsg(
             msg_id=req_body.next_message_id,
-            chapter_id=req_body.chapter_id,
             tg_id=req_body.tg_id,
         )
         next_message = get_check_user(db, req_msg)

@@ -69,7 +69,6 @@ class ReplaceChapter(GetUserChapter):
 class GetMsg(BaseModel):
     """Message model."""
 
-    chapter_id: int
     msg_id: int
 
 
@@ -95,6 +94,7 @@ class MakeMsg(GetUserChapter):
 
 class EditMsg(GetUserMsg):
     message: Optional[str]
+    chapter_id: int
     next_message_id: Optional[int]
     is_start_msg: Optional[bool]
 

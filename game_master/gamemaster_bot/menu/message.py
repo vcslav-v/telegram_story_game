@@ -56,7 +56,6 @@ def make_new_msg(tg_id: int, msg: str):
                 json={
                     'tg_id': tg_id,
                     'msg_id': from_msg_id,
-                    'chapter_id': user_context.get_context('chapter_id'),
                     'button_id': from_btn_id,
                     'link_to_msg_id': new_msg_resp.get('id'),
                 },
@@ -71,7 +70,7 @@ class Message:
         msg_resp = json.loads(
             requests.post(
                 DB_URL.format(item='message', cmd='get'),
-                json={'chapter_id': chapter_id, 'msg_id': message_id},
+                json={'msg_id': message_id},
             ).text
         )
         self.id = int(msg_resp.get('id'))
@@ -89,53 +88,58 @@ class Message:
         user_context.rm_status()
         user_context.update_context('message_id', str(self.id))
         buttons = []
-        for btn in self.buttons:
-            if btn['next_message_id']:
-                buttons.append([
-                    (f'{btn["text"]} => К сообщению', tools.make_call_back(SHOW_PREFIX, {
-                        'msg_id': btn['next_message_id'],
-                    }))
-                ])
-            else:
-                buttons.append(
-                    [
-                        (f'{btn["text"]} => Создать сообщение', tools.make_call_back(MAKE_PREFIX, {
-                            'from_msg_id': self.id,
-                            'from_btn_id': btn['id'],
+        if not self.link:
+            for btn in self.buttons:
+                if btn['next_message_id']:
+                    buttons.append([
+                        (f'{btn["text"]} => К сообщению', tools.make_call_back(SHOW_PREFIX, {
+                            'msg_id': btn['next_message_id'],
                         }))
-                    ]
-                )
-            buttons.append([
-                ('Удалить ответ', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']})),
-                ('Изменить текст', tools.make_call_back(EDIT_BUTTON_PREFIX, {'btn_id': btn['id']})),
-            ])
-        buttons.extend([
-            [
-                ('Добавить ответ', tools.make_call_back(ADD_BUTTON_PREFIX)),
-            ],
+                    ])
+                else:
+                    buttons.append(
+                        [
+                            (f'{btn["text"]} => Создать сообщение', tools.make_call_back(MAKE_PREFIX, {
+                                'from_msg_id': self.id,
+                                'from_btn_id': btn['id'],
+                            }))
+                        ]
+                    )
+                buttons.append([
+                    ('Удалить ответ', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']})),
+                    ('Изменить текст', tools.make_call_back(EDIT_BUTTON_PREFIX, {'btn_id': btn['id']})),
+                ])
+            buttons.append(
+                [
+                    ('Добавить ответ', tools.make_call_back(ADD_BUTTON_PREFIX)),
+                ]
+            )
+        buttons.append(
             [
                 ('Редактировать', tools.make_call_back(EDIT_PREFIX)),
-            ],
-        ])
+            ]
+        )
         direct_msg_buttons = []
         if self.parrent:
             direct_msg_buttons.append(('Предыдущее связанное сообщение', tools.make_call_back(
                 SHOW_PREFIX,
                 {'msg_id': self.parrent},
             )))
-        if self.link:
-            direct_msg_buttons.append(
-                ('Cледующее связанное сообщение', tools.make_call_back(
-                    SHOW_PREFIX,
-                    {'msg_id': self.link},
-                ))
-            )
-        else:
-            direct_msg_buttons.append(
-                ('Добавить связанное сообшение', tools.make_call_back(MAKE_PREFIX, {
-                    'from_msg_id': self.id,
-                }))
-            )
+        
+        if not self.buttons:
+            if self.link:
+                direct_msg_buttons.append(
+                    ('Cледующее связанное сообщение', tools.make_call_back(
+                        SHOW_PREFIX,
+                        {'msg_id': self.link},
+                    ))
+                )
+            else:
+                direct_msg_buttons.append(
+                    ('Добавить связанное сообшение', tools.make_call_back(MAKE_PREFIX, {
+                        'from_msg_id': self.id,
+                    }))
+                )
 
         buttons.append(direct_msg_buttons)
         back_from_buttons = []
@@ -176,7 +180,6 @@ class Message:
                 DB_URL.format(item='message', cmd='add_button'),
                 json={
                     'msg_id': self.id,
-                    'chapter_id': self.chapter_id,
                     'tg_id': tg_id,
                     'text': text,
                 },
@@ -199,7 +202,6 @@ class Message:
                     DB_URL.format(item='message', cmd='rm_button'),
                     json={
                         'msg_id': self.id,
-                        'chapter_id': self.chapter_id,
                         'tg_id': tg_id,
                         'button_id': btn_id,
                     },
@@ -219,7 +221,6 @@ class Message:
                 DB_URL.format(item='message', cmd='edit'),
                 json={
                     'msg_id': self.id,
-                    'chapter_id': self.chapter_id,
                     'tg_id': tg_id,
                     'message': text,
                 },
@@ -243,13 +244,12 @@ class Message:
         user_context.set_status('wait_line')
         user_context.set_params({'call_to': EDIT_BUTTON_PREFIX, 'btn_id': btn_id})
 
-    def edit_text_btn(self,tg_id: int, text: str, btn_id: int):
+    def edit_text_btn(self, tg_id: int, text: str, btn_id: int):
         edit_btn_msg_resp = json.loads(
             requests.post(
                 DB_URL.format(item='message', cmd='edit_button'),
                 json={
                     'msg_id': self.id,
-                    'chapter_id': self.chapter_id,
                     'tg_id': tg_id,
                     'button_id': btn_id,
                     'text': text,

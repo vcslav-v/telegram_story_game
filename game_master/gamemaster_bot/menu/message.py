@@ -79,6 +79,7 @@ class Message:
         self.chapter_id = int(msg_resp.get('chapter_id'))
         self.message = msg_resp.get('message')
         self.link = msg_resp.get('link')
+        self.from_buttons = msg_resp.get('from_buttons')
         self.parrent = msg_resp.get('parrent')
         self.buttons = msg_resp.get('buttons')
 
@@ -89,32 +90,64 @@ class Message:
         user_context.update_context('message_id', str(self.id))
         buttons = []
         for btn in self.buttons:
-            buttons.extend([
-                [
-                    (btn['text'], tools.make_call_back(MAKE_PREFIX, {
-                        'from_msg_id': self.id,
-                        'from_btn_id': btn['id'],
+            if btn['next_message_id']:
+                buttons.append([
+                    (f'{btn["text"]} => К сообщению', tools.make_call_back(SHOW_PREFIX, {
+                        'msg_id': btn['next_message_id'],
                     }))
-                ],
-                [
-                    ('Удалить ответ', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']})),
-                    ('Изменить текст', tools.make_call_back(EDIT_BUTTON_PREFIX, {'btn_id': btn['id']})),
-                ],
+                ])
+            else:
+                buttons.append(
+                    [
+                        (f'{btn["text"]} => Создать сообщение', tools.make_call_back(MAKE_PREFIX, {
+                            'from_msg_id': self.id,
+                            'from_btn_id': btn['id'],
+                        }))
+                    ]
+                )
+            buttons.append([
+                ('Удалить ответ', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']})),
+                ('Изменить текст', tools.make_call_back(EDIT_BUTTON_PREFIX, {'btn_id': btn['id']})),
             ])
         buttons.extend([
             [
                 ('Добавить ответ', tools.make_call_back(ADD_BUTTON_PREFIX)),
             ],
             [
-                ('Добавить связанное сообшение', tools.make_call_back(MAKE_PREFIX, {
-                        'from_msg_id': self.id,
-                })),
-            ],
-            [
                 ('Редактировать', tools.make_call_back(EDIT_PREFIX)),
-                ('К главе', tools.make_call_back(chapter.SHOW_PREFIX))
             ],
         ])
+        direct_msg_buttons = []
+        if self.parrent:
+            direct_msg_buttons.append(('Предыдущее связанное сообщение', tools.make_call_back(
+                SHOW_PREFIX,
+                {'msg_id': self.parrent},
+            )))
+        if self.link:
+            direct_msg_buttons.append(
+                ('Cледующее связанное сообщение', tools.make_call_back(
+                    SHOW_PREFIX,
+                    {'msg_id': self.link},
+                ))
+            )
+        else:
+            direct_msg_buttons.append(
+                ('Добавить связанное сообшение', tools.make_call_back(MAKE_PREFIX, {
+                    'from_msg_id': self.id,
+                }))
+            )
+
+        buttons.append(direct_msg_buttons)
+        back_from_buttons = []
+        if self.from_buttons:
+            for from_btn in self.from_buttons:
+                back_from_buttons.append((
+                    f'<= {from_btn["text"][:8]}',
+                    tools.make_call_back(SHOW_PREFIX, {'msg_id': from_btn['parrent_message_id']}),
+                ))
+        buttons.append(back_from_buttons)
+        buttons.append([('К главе', tools.make_call_back(chapter.SHOW_PREFIX))])
+
         tools.send_menu_msg(tg_id, text, buttons)
 
     def get_new_msg(self, tg_id: int):

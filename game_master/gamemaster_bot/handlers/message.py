@@ -21,9 +21,10 @@ def make_msg(call):
 )
 def show_msg(call):
     user_context = mem.UserContext(call.from_user.id)
+    params = tools.get_call_back_params(call.data)
     _message = message.Message(
         user_context.get_context('chapter_id'),
-        user_context.get_context('message_id'),
+        params.get('msg_id') or user_context.get_context('message_id'),
         )
     _message.show(call.from_user.id)
 

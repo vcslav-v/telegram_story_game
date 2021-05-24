@@ -133,6 +133,7 @@ class Message(Base):
             'is_start_chapter': self.is_start_chapter,
             'link': self.link.id if self.link else None,
             'parrent': self.parent_id if self.parent_id else None,
+            'from_buttons': self.from_button if self.from_button else None,
             'buttons': [btn.to_dict() for btn in self.own_buttons],
         }
 

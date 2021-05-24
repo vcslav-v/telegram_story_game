@@ -47,6 +47,19 @@ def add_btn_msg(call):
     _message.get_new_btn(call.from_user.id)
 
 
+@bot.callback_query_handler(
+    func=tools.is_correct_prefix(message.RM_BUTTON_PREFIX)
+)
+def rm_btn_msg(call):
+    params = tools.get_call_back_params(call.data)
+    user_context = mem.UserContext(call.from_user.id)
+    _message = message.Message(
+        user_context.get_context('chapter_id'),
+        user_context.get_context('message_id'),
+        )
+    _message.rm_btn(call.from_user.id, params.get('btn_id'), params.get('is_sure'))
+
+
 @bot.message_handler(
     content_types='text',
     func=tools.is_wait_line_for(message.MAKE_PREFIX),

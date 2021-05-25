@@ -2,6 +2,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, Text, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+import hashlib
 
 Base = declarative_base()
 
@@ -74,12 +75,16 @@ class Chapter(Base):
 
     number = Column(Integer, nullable=False)
     name = Column(Text, nullable=False)
+    uid = Column(Text)
 
     messages = relationship(
         'Message',
         back_populates='chapter',
         cascade='delete-orphan,delete',
     )
+
+    def make_uid(self):
+        self.uid = hashlib.sha224(bytes(f'{self.id}{self.story.author.telegram_id}', 'utf-8')).hexdigest()
 
     def to_dict(self):
         """Represent to dict."""
@@ -88,6 +93,16 @@ class Chapter(Base):
             'name': self.name,
             'number': self.number,
             'story_id': self.story_id,
+        }
+
+    def messages_map_to_dict(self):
+        """Represent messages."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'story': self.story.name,
+            'story_id': self.story.id,
+            'messages': [msg.to_dict() for msg in self.messages],
         }
 
 

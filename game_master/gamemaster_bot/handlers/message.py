@@ -23,7 +23,6 @@ def show_msg(call):
     user_context = mem.UserContext(call.from_user.id)
     params = tools.get_call_back_params(call.data)
     _message = message.Message(
-        user_context.get_context('chapter_id'),
         params.get('msg_id') or user_context.get_context('message_id'),
         )
     _message.show(call.from_user.id)
@@ -35,7 +34,6 @@ def show_msg(call):
 def edit_msg(call):
     user_context = mem.UserContext(call.from_user.id)
     _message = message.Message(
-        user_context.get_context('chapter_id'),
         user_context.get_context('message_id'),
         )
     _message.get_new_msg(call.from_user.id)
@@ -47,7 +45,6 @@ def edit_msg(call):
 def add_btn_msg(call):
     user_context = mem.UserContext(call.from_user.id)
     _message = message.Message(
-        user_context.get_context('chapter_id'),
         user_context.get_context('message_id'),
         )
     _message.get_new_btn(call.from_user.id)
@@ -60,7 +57,6 @@ def rm_btn_msg(call):
     params = tools.get_call_back_params(call.data)
     user_context = mem.UserContext(call.from_user.id)
     _message = message.Message(
-        user_context.get_context('chapter_id'),
         user_context.get_context('message_id'),
         )
     _message.rm_btn(call.from_user.id, params.get('btn_id'), params.get('is_sure'))
@@ -73,7 +69,6 @@ def edit_btn_msg(call):
     params = tools.get_call_back_params(call.data)
     user_context = mem.UserContext(call.from_user.id)
     _message = message.Message(
-        user_context.get_context('chapter_id'),
         user_context.get_context('message_id'),
         )
     _message.get_text_btn(call.from_user.id, params.get('btn_id'))
@@ -97,7 +92,6 @@ def wait_line_edit(msg):
     user_context = mem.UserContext(msg.from_user.id)
     user_context.rm_status()
     _message = message.Message(
-        user_context.get_context('chapter_id'),
         user_context.get_context('message_id'),
         )
     _message.edit(msg.from_user.id, msg.text)
@@ -112,7 +106,6 @@ def wait_line_edit_btn_text(msg):
     user_context.rm_status()
     params = user_context.get_params()
     _message = message.Message(
-        user_context.get_context('chapter_id'),
         user_context.get_context('message_id'),
         )
     _message.edit_text_btn(msg.from_user.id, msg.text, int(params['btn_id']))
@@ -126,7 +119,6 @@ def wait_line_add_btn(msg):
     user_context = mem.UserContext(msg.from_user.id)
     user_context.rm_status()
     _message = message.Message(
-        user_context.get_context('chapter_id'),
         user_context.get_context('message_id'),
         )
     _message.add_button(msg.from_user.id, msg.text)

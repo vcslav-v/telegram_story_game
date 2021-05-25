@@ -1,6 +1,7 @@
-from gamemaster_bot import tools, mem, DB_URL
+from gamemaster_bot import tools, mem, DB_URL, APP_URL
 from gamemaster_bot.menu import story, message
 
+import hashlib
 import requests
 import json
 
@@ -66,7 +67,13 @@ class Chapter:
         user_context.update_context('chapter_id', str(self.id))
 
         if self.start_message:
-            buttons = []
+            buttons = [[
+                (
+                    'Все сообщения',
+                    None,
+                    APP_URL + hashlib.sha224(bytes(f'{self.id}{tg_id}', 'utf-8')).hexdigest()
+                )
+            ]]
         else:
             buttons = [
                 [('Написать первое сообщение', tools.make_call_back(message.MAKE_PREFIX, {
@@ -75,9 +82,13 @@ class Chapter:
             ]
 
         buttons.extend([
-            [('Переименовать', tools.make_call_back(RENAME_PREFIX))],
-            [('Удалить', tools.make_call_back(RM_PREFIX, {'is_sure': False}))],
-            [('Все главы', tools.make_call_back(story.SHOW_CHAPTERS_PREFIX))],
+            [
+                ('Переименовать', tools.make_call_back(RENAME_PREFIX)),
+                ('Удалить', tools.make_call_back(RM_PREFIX, {'is_sure': False})),
+            ],
+            [
+                ('Все главы', tools.make_call_back(story.SHOW_CHAPTERS_PREFIX)),
+            ],
         ])
         tools.send_menu_msg(tg_id, msg, buttons)
 

@@ -1,5 +1,6 @@
-from gamemaster_bot import tools, mem, DB_URL
+from gamemaster_bot import tools, mem, DB_URL, APP_URL
 from gamemaster_bot.menu import chapter
+import hashlib
 
 import requests
 import json
@@ -61,18 +62,19 @@ def make_new_msg(tg_id: int, msg: str):
                 },
             )
     user_context.flush_params()
-    _message = Message(user_context.get_context('chapter_id'), new_msg_resp.get('id'))
+    _message = Message(new_msg_resp.get('id'))
     _message.show(tg_id)
 
 
 class Message:
-    def __init__(self, chapter_id: int, message_id: int):
+    def __init__(self, message_id: int):
         msg_resp = json.loads(
             requests.post(
                 DB_URL.format(item='message', cmd='get'),
                 json={'msg_id': message_id},
             ).text
         )
+        print(msg_resp)
         self.id = int(msg_resp.get('id'))
         self.is_start_chapter = msg_resp.get('is_start_chapter')
         self.chapter_id = int(msg_resp.get('chapter_id'))
@@ -125,7 +127,7 @@ class Message:
                 SHOW_PREFIX,
                 {'msg_id': self.parrent},
             )))
-        
+
         if not self.buttons:
             if self.link:
                 direct_msg_buttons.append(
@@ -150,7 +152,14 @@ class Message:
                     tools.make_call_back(SHOW_PREFIX, {'msg_id': from_btn['parrent_message_id']}),
                 ))
         buttons.append(back_from_buttons)
-        buttons.append([('К главе', tools.make_call_back(chapter.SHOW_PREFIX))])
+        buttons.append([
+            ('К главе', tools.make_call_back(chapter.SHOW_PREFIX)),
+            (
+                'Все сообщения',
+                None,
+                APP_URL + hashlib.sha224(bytes(f'{self.chapter_id}{tg_id}', 'utf-8')).hexdigest()
+            ),
+        ])
 
         tools.send_menu_msg(tg_id, text, buttons)
 

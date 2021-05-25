@@ -3,7 +3,7 @@ import logging
 
 from data_base.db_utils import get_db
 from data_base.schemas import (GetChapter, GetUserChapter, MakeChapter,
-                               RenameChapter, ReplaceChapter)
+                               RenameChapter, ReplaceChapter, GetChapterMap)
 from data_base.services import chapter
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -60,3 +60,13 @@ def rm(req_body: GetUserChapter, db: Session = Depends(get_db)):
     except ValueError as val_err:
         return {'error': val_err.args}
     return status
+
+
+@router.post('/get_chapter_map')
+def get_chapter_map(req_body: GetChapterMap, db: Session = Depends(get_db)):
+    """Get and return new story."""
+    try:
+        _chapter = chapter.get_chapter_by_uid(db, req_body)
+    except ValueError as val_err:
+        return {'error': val_err.args}
+    return _chapter.messages_map_to_dict()

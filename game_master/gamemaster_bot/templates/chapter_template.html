@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link rel="stylesheet"  type="text/css" href="{{url_for('.static', filename='style.css')}}">
+
+    <title>{{ story_name }} - {{ chapter_name }}</title>
+  </head>
+  <body>
+  <div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>{{ story_name }}</h1>
+            <h2>{{ chapter_name }}</h2>
+            {% for msg in messages %}
+                <p id="{{ msg.id }}" class="mb-0 mt-2 font-weight-light message"><small><a href="{{ bot_url }}=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}">id: {{ msg.id }}</a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}">id: {{ msg.parrent }}</a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"> | {{from_btn.text}} |</a>{% endfor %}{% endif %}</small></p>
+                <p class="mb-1">{{ msg.message }}</p>
+                {% if msg.buttons %}
+                <ul class="mb-4">
+                {% for btn in msg.buttons %}
+                    <li>{% if btn.next_message_id %}<a href="#{{ btn.next_message_id }}">{{ btn.text }}</a>{% else %}{{ btn.text }}{% endif %}</li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+  </body>
+</html>

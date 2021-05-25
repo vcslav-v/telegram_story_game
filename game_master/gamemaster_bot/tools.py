@@ -37,14 +37,14 @@ def get_call_back_params(call_data: str):
 
 def make_inline_keyboard(buttons_rows: List):
     markup = InlineKeyboardMarkup()
-    print(buttons_rows)
     for row in buttons_rows:
         buttons_row = []
         for button in row:
-            print(button)
-            key, call_data = button
-            buttons_row.append(InlineKeyboardButton(key, callback_data=call_data))
-        print(buttons_row)
+            key, call_data, *tail = button
+            if not tail:
+                buttons_row.append(InlineKeyboardButton(key, callback_data=call_data))
+            else:
+                buttons_row.append(InlineKeyboardButton(key, url=tail[0]))
         markup.add(*buttons_row)
     return markup
 

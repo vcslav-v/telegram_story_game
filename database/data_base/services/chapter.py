@@ -34,6 +34,8 @@ def make(
     )
     db.add(new_chapter)
     db.commit()
+    new_chapter.make_uid()
+    db.commit()
     db.refresh(new_chapter)
     return new_chapter
 
@@ -156,3 +158,18 @@ def rm(
     db.delete(story_chapter)
     db.commit()
     return {'result': 'ok'}
+
+
+def get_chapter_by_uid(
+    db: Session,
+    req_body: schemas.GetChapterMap,
+) -> models.Chapter:
+    """Return all chapter msgs."""
+    user_chapter = db.query(models.Chapter).filter_by(
+        uid=req_body.chapter_hash,
+    ).first()
+    if user_chapter:
+        return user_chapter
+    err_msg = 'Wrong hash'
+    logger.error(err_msg)
+    raise ValueError(err_msg)

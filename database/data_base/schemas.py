@@ -48,6 +48,12 @@ class GetChapter(GetStory):
     chapter_id: int
 
 
+class GetChapterMap(BaseModel):
+    """Chapter map model."""
+
+    chapter_hash: str
+
+
 class GetUserChapter(TgUser, GetChapter):
     """Chapter model."""
 

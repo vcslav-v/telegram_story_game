@@ -90,7 +90,6 @@ def add_btn_link_msg(call):
     func=tools.is_correct_prefix(message.ADD_DIRECT_LINK_PREFIX)
 )
 def add_direct_link_msg(call):
-    params = tools.get_call_back_params(call.data)
     user_context = mem.UserContext(call.from_user.id)
     _message = message.Message(
         user_context.get_context('message_id'),
@@ -146,7 +145,12 @@ def wait_line_add_link_btn(msg):
     _message = message.Message(
         user_context.get_context('message_id'),
         )
-    _message.add_link_btn(msg.from_user.id, msg.text, int(params['btn_id']))
+    try:
+        int(msg.text)
+    except Exception:
+        _message.show(msg.from_user.id)
+    else:
+        _message.add_link_btn(msg.from_user.id, msg.text, int(params['btn_id']))
 
 
 @bot.message_handler(
@@ -156,11 +160,15 @@ def wait_line_add_link_btn(msg):
 def wait_line_add_direct_link(msg):
     user_context = mem.UserContext(msg.from_user.id)
     user_context.rm_status()
-    params = user_context.get_params()
     _message = message.Message(
         user_context.get_context('message_id'),
         )
-    _message.add_direct_link(msg.from_user.id, msg.text)
+    try:
+        int(msg.text)
+    except Exception:
+        _message.show(msg.from_user.id)
+    else:
+        _message.add_direct_link(msg.from_user.id, msg.text)
 
 
 @bot.message_handler(

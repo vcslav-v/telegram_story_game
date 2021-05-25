@@ -18,7 +18,7 @@
             <h1>{{ story_name }}</h1>
             <h2>{{ chapter_name }}</h2>
             {% for msg in messages %}
-                <p id="{{ msg.id }}" class="mb-0 mt-2 font-weight-light message"><small><a href="{{ bot_url }}=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}">id: {{ msg.id }}</a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}">id: {{ msg.parrent }}</a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"> | {{from_btn.text}} |</a>{% endfor %}{% endif %}</small></p>
+                <p id="{{ msg.id }}" class="mb-0 mt-2 font-weight-light message"><small><a target="_blank" href="{{ bot_url }}=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}">id: {{ msg.id }}</a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}">id: {{ msg.parrent }}</a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"> | {{from_btn.text}} |</a>{% endfor %}{% endif %}</small></p>
                 <p class="mb-1">{{ msg.message }}</p>
                 {% if msg.buttons %}
                 <ul class="mb-4">

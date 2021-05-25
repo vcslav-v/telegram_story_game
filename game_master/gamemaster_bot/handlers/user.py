@@ -20,9 +20,7 @@ def start_message(msg):
     user = tg_user.TelegramUser(msg.chat.id)
     user_context = mem.UserContext(user.telegram_id)
     user_context.flush_all()
-    print(msg.text)
-    print(link_data)
-    if link_data.get('edit_message_id') and link_data.get('story_id'):
+    if link_data and link_data.get('edit_message_id') and link_data.get('story_id'):
         if int(link_data.get('story_id')) in [story.id for story in user.stories]: 
             _message = message.Message(link_data.get('edit_message_id'))
             user_context.update_context('story_id', link_data.get('story_id'))

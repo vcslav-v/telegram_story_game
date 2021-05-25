@@ -11,6 +11,8 @@ ADD_BUTTON_PREFIX = 'add_btn_msg?'
 RM_BUTTON_PREFIX = 'rm_btn_msg?'
 EDIT_BUTTON_PREFIX = 'edit_btn_msg?'
 EDIT_PREFIX = 'edit_msg?'
+ADD_BUTTON_LINK_PREFIX = 'add_btn_link_msg?'
+ADD_DIRECT_LINK_PREFIX = 'add_direct_link_msg?'
 
 
 def get_new_msg(
@@ -74,7 +76,6 @@ class Message:
                 json={'msg_id': message_id},
             ).text
         )
-        print(msg_resp)
         self.id = int(msg_resp.get('id'))
         self.is_start_chapter = msg_resp.get('is_start_chapter')
         self.chapter_id = int(msg_resp.get('chapter_id'))
@@ -108,8 +109,9 @@ class Message:
                         ]
                     )
                 buttons.append([
-                    ('Удалить ответ', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']})),
-                    ('Изменить текст', tools.make_call_back(EDIT_BUTTON_PREFIX, {'btn_id': btn['id']})),
+                    ('Delete', tools.make_call_back(RM_BUTTON_PREFIX, {'btn_id': btn['id']})),
+                    ('New text', tools.make_call_back(EDIT_BUTTON_PREFIX, {'btn_id': btn['id']})),
+                    ('Add link', tools.make_call_back(ADD_BUTTON_LINK_PREFIX, {'btn_id': btn['id']})),
                 ])
             buttons.append(
                 [
@@ -123,7 +125,7 @@ class Message:
         )
         direct_msg_buttons = []
         if self.parrent:
-            direct_msg_buttons.append(('Предыдущее связанное сообщение', tools.make_call_back(
+            direct_msg_buttons.append(('Prev direct msg', tools.make_call_back(
                 SHOW_PREFIX,
                 {'msg_id': self.parrent},
             )))
@@ -131,14 +133,19 @@ class Message:
         if not self.buttons:
             if self.link:
                 direct_msg_buttons.append(
-                    ('Cледующее связанное сообщение', tools.make_call_back(
+                    ('Next direct msg', tools.make_call_back(
                         SHOW_PREFIX,
                         {'msg_id': self.link},
                     ))
                 )
             else:
                 direct_msg_buttons.append(
-                    ('Добавить связанное сообшение', tools.make_call_back(MAKE_PREFIX, {
+                    ('Add direct msg', tools.make_call_back(MAKE_PREFIX, {
+                        'from_msg_id': self.id,
+                    }))
+                )
+            direct_msg_buttons.append(
+                    ('Add direct link', tools.make_call_back(ADD_DIRECT_LINK_PREFIX, {
                         'from_msg_id': self.id,
                     }))
                 )
@@ -241,6 +248,24 @@ class Message:
         else:
             self.message = text
             self.show(tg_id)
+    
+    def add_direct_link(self, tg_id: int, to_msg_id: str):
+        edit_msg_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='edit'),
+                json={
+                    'msg_id': self.id,
+                    'tg_id': tg_id,
+                    'next_message_id': int(to_msg_id),
+                },
+            ).text
+        )
+        if edit_msg_resp.get('error'):
+            msg = edit_msg_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.link = int(to_msg_id)
+            self.show(tg_id)
 
     def get_text_btn(self, tg_id: int, btn_id: int):
         btn = list(btn for btn in self.buttons if btn.get('id') == btn_id)[0]
@@ -252,6 +277,45 @@ class Message:
         user_context = mem.UserContext(tg_id)
         user_context.set_status('wait_line')
         user_context.set_params({'call_to': EDIT_BUTTON_PREFIX, 'btn_id': btn_id})
+
+    def get_link_btn(self, tg_id: int, btn_id: int):
+        text = 'ID сообщения:'
+        buttons = [
+                [('Назад', tools.make_call_back(SHOW_PREFIX))],
+            ]
+        tools.send_menu_msg(tg_id, text, buttons)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': ADD_BUTTON_LINK_PREFIX, 'btn_id': btn_id})
+
+    def get_direct_link(self, tg_id: int):
+        text = 'ID сообщения:'
+        buttons = [
+                [('Назад', tools.make_call_back(SHOW_PREFIX))],
+            ]
+        tools.send_menu_msg(tg_id, text, buttons)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': ADD_DIRECT_LINK_PREFIX})
+
+    def add_link_btn(self, tg_id: int, next_msg_id: str, btn_id: int):
+        edit_btn_msg_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='edit_button'),
+                json={
+                    'msg_id': self.id,
+                    'tg_id': tg_id,
+                    'button_id': btn_id,
+                    'link_to_msg_id': int(next_msg_id),
+                },
+            ).text
+        )
+        if edit_btn_msg_resp.get('error'):
+            msg = edit_btn_msg_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.buttons = edit_btn_msg_resp.get('buttons')
+            self.show(tg_id)        
 
     def edit_text_btn(self, tg_id: int, text: str, btn_id: int):
         edit_btn_msg_resp = json.loads(

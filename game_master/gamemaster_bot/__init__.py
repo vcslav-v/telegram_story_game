@@ -7,7 +7,7 @@ from flask import Flask, request
 DB_URL = environ.get('DB_URL') + '/{item}/{cmd}'
 APP_URL = 'https://{domain}/'.format(domain=environ.get('DOMAIN'))
 BOT_URL = environ.get('BOT_URL')
-BOT_TOKEN = environ.get('TG_TOKEN') or ''
+BOT_TOKEN = environ.get('BOT_TOKEN') or ''
 REDIS = environ.get('REDIS') or ''
 
 bot = telebot.TeleBot(BOT_TOKEN)

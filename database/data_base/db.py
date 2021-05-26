@@ -8,7 +8,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 
 SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{user}:{password}@{host}/{dbname}'.format(
     user='postgres',
-    password=environ.get('POSTGRES_PASSWORD'),
+    password=environ.get('DB_PASSWORD'),
     host=environ.get('DB_URL'),
     dbname='postgres'
 )

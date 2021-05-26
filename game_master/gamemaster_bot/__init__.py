@@ -4,7 +4,7 @@ from os import environ
 from flask import Flask, request
 
 
-DB_URL = '{DB_URL}/{item}/{cmd}'.format(DB_URL=environ.get('DB_URL'))
+DB_URL = environ.get('DB_URL') + '/{item}/{cmd}'
 APP_URL = 'https://{domain}/'.format(domain=environ.get('DOMAIN'))
 BOT_URL = environ.get('BOT_URL')
 BOT_TOKEN = environ.get('TG_TOKEN') or ''

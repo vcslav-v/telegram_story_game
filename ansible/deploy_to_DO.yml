@@ -36,7 +36,7 @@
     
     - name: Сreate dhparams directory
       file:
-        path: "{{ work_dir }}/nginx/dhparams"
+        path: "{{ work_dir }}/nginx/dhparam"
         state: directory
 
     - name: Add 80 port to firewall
@@ -52,7 +52,7 @@
         dest: "{{ work_dir }}/nginx/public_html/index.html"
     
     - openssl_dhparam:
-        path: "{{ work_dir }}/nginx/dhparams-2048.pem"
+        path: "{{ work_dir }}/nginx/dhparam/dhparam-2048.pem"
         size: 2048
     
     - name: Template nginx config file

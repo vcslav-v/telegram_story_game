@@ -17,16 +17,25 @@
         <div class="col-md-6">
             <h1>{{ story_name }}</h1>
             <h2>{{ chapter_name }}</h2>
-            {% for msg in messages %}
-                <p id="{{ msg.id }}" class="mb-0 mt-2 font-weight-light message"><small><a target="_blank" href="{{ bot_url }}=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}">id: {{ msg.id }}</a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}">id: {{ msg.parrent }}</a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"> | {{from_btn.text}} |</a>{% endfor %}{% endif %}</small></p>
-                <p class="mb-1">{{ msg.message }}</p>
+            {% for msg_item in messages %}
+              {% set msg = msg_item["data"] %}
+              {% set is_attach = msg_item["is_attach"] %}
+              <div class="card{% if is_attach %} text-dark bg-light{% else %} bg-warning{% endif %} mb-3">
+              <div id="{{ msg.id }}" class="message">
+              <div class="card-body">
+              <div class="card-header">
+                <a target="_blank" href="{{ bot_url }}=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}"><span class="badge bg-dark">id: {{ msg.id }}</span></a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}"><span class="badge bg-primary">id: {{ msg.parrent }}</span></a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"><span class="badge bg-primary">{{from_btn.text}}</span></a>{% endfor %}{% endif %}{% if not is_attach %} <span class="badge bg-danger">Unattainable!</span>{% endif %}
+              </div>
+
+                <p class="card-text m-2">{{ msg.message }}</p>
                 {% if msg.buttons %}
-                <ul class="mb-4">
                 {% for btn in msg.buttons %}
-                    <li>{% if btn.next_message_id %}<a href="#{{ btn.next_message_id }}">{{ btn.text }}</a>{% else %}{{ btn.text }}{% endif %}</li>
+                    <a class="btn btn-primary" href="#{% if btn.next_message_id %}{{ btn.next_message_id }}{% endif %}">{{ btn.text }}</a>
                 {% endfor %}
-                </ul>
                 {% endif %}
+              </div>
+              </div>
+              </div>
             {% endfor %}
         </div>
     </div>

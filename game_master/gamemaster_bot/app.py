@@ -20,24 +20,35 @@ def chapter_map(chapter_hash):
     )
     story_dict = {}
     next_msgs = []
+    writed_msgs = set()
     for msg in chapter_map_resp['messages']:
         if msg['is_start_chapter']:
             next_msgs = [msg['id']]
             writed_msgs = {msg['id']}
         story_dict[msg['id']] = msg
     messages = []
+    attach = True
     while len(next_msgs) > 0:
         msg = story_dict[next_msgs.pop()]
-        if msg['link']:
-            if msg['link'] not in writed_msgs:
-                next_msgs.append(msg['link'])
-                writed_msgs.add(msg['link'])
+        if msg['link'] and msg['link'] not in writed_msgs:
+            next_msgs.append(msg['link'])
+            writed_msgs.add(msg['link'])
         elif msg['buttons']:
             for btn in msg['buttons'][::-1]:
                 if btn['next_message_id'] not in writed_msgs and btn['next_message_id']:
                     next_msgs.append(btn['next_message_id'])
                     writed_msgs.add(btn['next_message_id'])
-        messages.append(msg)
+        messages.append({'data': msg, 'is_attach': attach})
+        if len(next_msgs) == 0:
+            attach = False
+            unattached_keys = story_dict.keys() - writed_msgs
+            for msg_id in unattached_keys:
+                msg = story_dict[msg_id]
+                if not msg['parrent'] and not msg['from_buttons']:
+                    next_msgs.append(msg['id'])
+                    writed_msgs.add(msg['id'])
+                    break
+
     return render_template(
         'chapter_template.html',
         story_name=chapter_map_resp['story'],

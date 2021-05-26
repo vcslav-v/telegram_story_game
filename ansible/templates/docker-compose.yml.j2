@@ -37,6 +37,8 @@ services:
       environment:
         - DB_URL=db
         - DB_PASSWORD="{{ db_password }}"
+      depends_on:
+        - db
       networks:
         - intranet
 

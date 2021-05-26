@@ -1,9 +1,10 @@
 import redis
 from os import environ
+from gamemaster_bot import REDIS
 
 
 r = redis.Redis(
-    host=environ.get('REDIS') or 'localhost',
+    host=REDIS,
     decode_responses=True,
 )
 

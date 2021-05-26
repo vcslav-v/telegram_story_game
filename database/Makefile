@@ -114,3 +114,6 @@ db_update:
 
 run:
 	poetry run uvicorn data_base.main:app --reload
+
+req:
+	poetry export>requirements.txt

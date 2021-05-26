@@ -1,11 +1,7 @@
-from gamemaster_bot import bot, DB_URL, BOT_URL
-from gamemaster_bot.handlers import story, chapter, user, message
-from flask import Flask
+from gamemaster_bot import DB_URL, BOT_URL, app
 from flask import render_template
 import requests
 import json
-
-app = Flask(__name__)
 
 
 @app.route("/<chapter_hash>")
@@ -57,7 +53,3 @@ def chapter_map(chapter_hash):
         bot_url=BOT_URL,
         messages=messages,
     )
-
-
-bot.remove_webhook()
-bot.polling()

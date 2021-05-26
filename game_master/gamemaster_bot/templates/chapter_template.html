@@ -24,7 +24,7 @@
               <div id="{{ msg.id }}" class="message">
               <div class="card-body">
               <div class="card-header">
-                <a target="_blank" href="{{ bot_url }}=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}"><span class="badge bg-dark">id: {{ msg.id }}</span></a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}"><span class="badge bg-primary">id: {{ msg.parrent }}</span></a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"><span class="badge bg-primary">{{from_btn.text}}</span></a>{% endfor %}{% endif %}{% if not is_attach %} <span class="badge bg-danger">Unattainable!</span>{% endif %}
+                <a target="_blank" href="{{ bot_url }}?start=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}"><span class="badge bg-dark">id: {{ msg.id }}</span></a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}"><span class="badge bg-primary">id: {{ msg.parrent }}</span></a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"><span class="badge bg-primary">{{from_btn.text}}</span></a>{% endfor %}{% endif %}{% if not is_attach %} <span class="badge bg-danger">Unattainable!</span>{% endif %}
               </div>
 
                 <p class="card-text m-2">{{ msg.message }}</p>

@@ -6,7 +6,12 @@ from os import environ
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI') or 'sqlite:///foo.db'
+SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{user}:{password}@{host}/{dbname}'.format(
+    user='postgres',
+    password=environ.get('POSTGRES_PASSWORD'),
+    host=environ.get('DB_URL'),
+    dbname='postgres'
+)
 
 LOGGING_CONFIG = {
     'version': 1,

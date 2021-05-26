@@ -1,0 +1,71 @@
+name: deploy
+
+on:  [push]
+
+jobs:
+  image-build:
+    name: Build app image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Build app image
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+          registry: docker.pkg.github.com
+          repository:   ${{ github.repository }}/game_master
+          path: game_master
+          tags: latest
+      
+      - name: Build db_api image
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+          registry: docker.pkg.github.com
+          repository:   ${{ github.repository }}/database
+          path: database
+          tags: latest
+    
+  
+  run-ansible:
+    name: Run ansible
+    runs-on: ubuntu-latest
+    needs: image-build
+    
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ansible
+
+      - name: Set and run ansible
+        env:
+          ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
+          ANSIBLE_VAULT_FILE: ansible/vars.yml
+          ANSIBLE_VAULT: ${{ secrets.ANSIBLE_VAULT }}
+          ANSIBLE_INVENTORY: ${{ secrets.ANSIBLE_INVENTORY }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          ANSIBLE_PRIVATE_KEY_FILE: ansible/.ssh/ans_key
+          INVENTORY_FILE: ansible/inventory.ini
+          ANSIBLE_VAULT_PASSWORD_FILE: ansible/.ansible-vault-password
+          ANSIBLE_HOST_KEY_CHECKING: False
+
+          GH_USERNAME: ${{ github.actor }}
+          GH_PASS: ${{ github.token }}
+          GH_REGISTRY: docker.pkg.github.com
+        run: |
+          echo "$ANSIBLE_VAULT_PASSWORD" > $ANSIBLE_VAULT_PASSWORD_FILE
+          echo "$ANSIBLE_VAULT" > $ANSIBLE_VAULT_FILE
+          mkdir ansible/.ssh
+          echo "$SSH_KEY" > $ANSIBLE_PRIVATE_KEY_FILE
+          chmod 600 $ANSIBLE_PRIVATE_KEY_FILE
+          echo "$ANSIBLE_INVENTORY" > $INVENTORY_FILE
+          ansible-playbook -i $INVENTORY_FILE ansible/deploy_to_DO.yml

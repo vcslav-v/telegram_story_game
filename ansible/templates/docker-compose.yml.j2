@@ -10,6 +10,7 @@ services:
         - BOT_URL={{ bot_url }}
         - BOT_TOKEN={{ bot_token }}
         - REDIS=redis
+        - DB_URL={{ db_api_name }}
       restart: always
       networks:
         intranet:
@@ -34,7 +35,7 @@ services:
       container_name: migrations
       command: alembic upgrade head
       environment:
-        - DB=db
+        - DB_URL=db
         - DB_PASSWORD="{{ db_password }}"
       networks:
         - intranet
@@ -63,6 +64,8 @@ services:
         - ./nginx/certbot/conf/:/etc/letsencrypt
         - ./nginx/certbot/logs/:/var/log/letsencrypt
         - ./nginx/certbot/data:/usr/share/nginx/html/letsencrypt
+      networks:
+        - intranet
 
     db:
       image: postgres:latest

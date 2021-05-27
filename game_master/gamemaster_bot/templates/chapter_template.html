@@ -30,7 +30,7 @@
                 <p class="card-text m-2">{{ msg.message }}</p>
                 {% if msg.buttons %}
                 {% for btn in msg.buttons %}
-                    <a class="btn btn-primary" href="#{% if btn.next_message_id %}{{ btn.next_message_id }}{% endif %}">{{ btn.text }}</a>
+                    <a class="btn {% if btn.next_message_id %}btn-primary{% else %}btn-secondary{% endif %} " href="#{% if btn.next_message_id %}{{ btn.next_message_id }}{% endif %}">{{ btn.text }}</a>
                 {% endfor %}
                 {% endif %}
               </div>

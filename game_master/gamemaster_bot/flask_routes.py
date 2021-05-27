@@ -4,7 +4,7 @@ import requests
 import json
 
 
-@app.route("/<chapter_hash>")
+@app.route("/chapter/<chapter_hash>")
 def chapter_map(chapter_hash):
     chapter_map_resp = json.loads(
         requests.post(

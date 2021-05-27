@@ -15,23 +15,22 @@ app = Flask(__name__)
 
 
 from .handlers import story, chapter, user, message
+from . import flask_routes
 
 
 @app.route('/' + BOT_TOKEN, methods=['POST'])
 def getMessage():
-    print('post')
     bot.process_new_updates([
             telebot.types.Update.de_json(
                 request.stream.read().decode("utf-8")
             )
     ])
-    return 'ok-post', 200
+    return 'ok', 200
 
 
 @app.route('/' + BOT_TOKEN, methods=['GET'])
 def test():
-    print('get')
-    return 'ok-get', 200
+    return 'ok', 200
 
 
 url = APP_URL + BOT_TOKEN

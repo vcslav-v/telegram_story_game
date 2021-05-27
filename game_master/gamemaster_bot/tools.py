@@ -62,7 +62,6 @@ def send_menu_msg(tg_id: int, text: str, buttons: List = [], row_width=1, exit_m
         msg_info = bot.send_message(
             tg_id, text, reply_markup=make_inline_keyboard(buttons)
         )
-        print(msg_info)
         user_context.set_status('in_menu')
         user_context.update_context('active_menu_msg_id', msg_info.message_id)
     if exit_menu:

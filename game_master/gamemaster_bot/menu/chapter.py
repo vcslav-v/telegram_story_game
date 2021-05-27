@@ -71,7 +71,10 @@ class Chapter:
                 (
                     'Все сообщения',
                     None,
-                    APP_URL + hashlib.sha224(bytes(f'{self.id}{tg_id}', 'utf-8')).hexdigest()
+                    '{app_url}chapter/{chapter_uid}'.format(
+                        app_url=APP_URL,
+                        chapter_uid=hashlib.sha224(bytes(f'{self.chapter_id}{tg_id}', 'utf-8')).hexdigest(),
+                    )
                 )
             ]]
         else:

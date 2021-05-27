@@ -18,7 +18,6 @@ class TelegramUser:
                 json={'tg_id': tg_id},
             ).text
         )
-        print(user_resp)
         self.id = int(user_resp['id'])
         self.telegram_id = int(user_resp['telegram_id'])
         self.stories = [story.Story(story_resp['id']) for story_resp in user_resp['stories']]

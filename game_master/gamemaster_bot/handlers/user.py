@@ -16,14 +16,8 @@ def extract_link_data(text):
 
 @bot.message_handler(commands=['start'])
 def start_message(msg):
-    print(msg)
     link_data = extract_link_data(msg.text)
-    print(link_data)
-    try:
-        user = tg_user.TelegramUser(msg.chat.id)
-    except Exception as e:
-        print(e)
-    print(user.id)
+    user = tg_user.TelegramUser(msg.chat.id)
     user_context = mem.UserContext(user.telegram_id)
     user_context.flush_all()
     if link_data and link_data.get('edit_message_id') and link_data.get('story_id'):

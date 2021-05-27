@@ -18,7 +18,9 @@ def extract_link_data(text):
 def start_message(msg):
     print(msg)
     link_data = extract_link_data(msg.text)
+    print(link_data)
     user = tg_user.TelegramUser(msg.chat.id)
+    print(user.id)
     user_context = mem.UserContext(user.telegram_id)
     user_context.flush_all()
     if link_data and link_data.get('edit_message_id') and link_data.get('story_id'):

@@ -34,5 +34,5 @@ class TelegramUser:
         buttons.append(
                 [('Создать историю', tools.make_call_back(story.MAKE_PREFIX))]
             )
-
+        print(msg, buttons)
         tools.send_menu_msg(self.telegram_id, msg, buttons)

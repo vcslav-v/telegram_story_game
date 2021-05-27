@@ -24,12 +24,12 @@ def getMessage():
                 request.stream.read().decode("utf-8")
             )
     ])
-    return 'ok', 200
+    return 'ok-post', 200
 
 
 @app.route('/' + BOT_TOKEN, methods=['GET'])
 def test():
-    return 'ok', 200
+    return 'ok-get', 200
 
 
 url = APP_URL + BOT_TOKEN

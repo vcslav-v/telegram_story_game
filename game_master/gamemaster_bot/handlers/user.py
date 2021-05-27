@@ -16,6 +16,7 @@ def extract_link_data(text):
 
 @bot.message_handler(commands=['start'])
 def start_message(msg):
+    print(msg)
     link_data = extract_link_data(msg.text)
     user = tg_user.TelegramUser(msg.chat.id)
     user_context = mem.UserContext(user.telegram_id)

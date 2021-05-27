@@ -1,0 +1,76 @@
+- hosts: servers
+  user: "{{user_name}}"
+
+  tasks:
+    - name: Сreate work directory
+      file:
+        path: "{{ work_dir }}"
+        state: directory
+    
+    - name: Check that the docker-compose.yml exists
+      stat:
+        path: "{{ work_dir }}/docker-compose.yml"
+      register: stat_result
+    
+    - name: Stop all services
+      docker_compose:
+        project_src: "{{ work_dir }}"
+        build: no
+        stopped: yes
+      when: stat_result.stat.exists
+
+    - name: Template docker-compose file
+      template:
+        src: docker-compose.yml.j2
+        dest: "{{ work_dir }}/docker-compose.yml"
+
+    - name: Сreate nginx directory
+      file:
+        path: "{{ work_dir }}/nginx"
+        state: directory
+
+    - name: Сreate public_html directory
+      file:
+        path: "{{ work_dir }}/nginx/public_html"
+        state: directory
+    
+    - name: Сreate dhparams directory
+      file:
+        path: "{{ work_dir }}/nginx/dhparam"
+        state: directory
+
+    - name: Add 80 port to firewall
+      become: yes
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+
+    - name: Template index html
+      template:
+        src: index.html.j2
+        dest: "{{ work_dir }}/nginx/public_html/index.html"
+    
+    - openssl_dhparam:
+        path: "{{ work_dir }}/nginx/dhparam/dhparam-2048.pem"
+        size: 2048
+    
+    - name: Template nginx config file
+      template:
+        src: default.conf.j2
+        dest: "{{ work_dir }}/nginx/default.conf"
+
+    - name: Login to github packages
+      docker_login:
+        registry: "{{ lookup('env','GH_REGISTRY') }}"
+        username: "{{ lookup('env','GH_USERNAME') }}"
+        password: "{{ lookup('env','GH_PASS') }}"
+
+    - name: Start docker-compose
+      docker_compose:
+        build: yes
+        pull: yes
+        project_src: "{{ work_dir }}"
+
+  vars_files:
+    - vars.yml

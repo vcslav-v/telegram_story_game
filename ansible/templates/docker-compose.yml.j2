@@ -1,0 +1,91 @@
+version: "3"
+
+services:    
+    {{ app_name }}:
+      image: {{ app_image }}
+      container_name: {{ app_name }}
+      command: gunicorn run:app --bind 0.0.0.0:8080 -w 1
+      environment:
+        - DOMAIN={{ domain }}
+        - BOT_URL={{ bot_url }}
+        - BOT_TOKEN={{ bot_token }}
+        - REDIS=redis
+        - DB_URL={{ db_api_name }}
+      restart: always
+      networks:
+        intranet:
+          aliases:
+            - {{ app_name }}
+    
+    {{ db_api_name }}:
+      image: {{ db_api_image }}
+      container_name: {{ db_api_name }}
+      command: uvicorn data_base.main:app --host 0.0.0.0 --port 80 --reload
+      environment:
+        - DB_URL=db
+        - DB_PASSWORD="{{ db_password }}"
+      restart: always
+      depends_on:
+        - migrations
+      networks:
+        - intranet
+    
+    migrations:
+      image: {{ db_api_image }}
+      container_name: migrations
+      command: alembic upgrade head
+      environment:
+        - DB_URL=db
+        - DB_PASSWORD="{{ db_password }}"
+      depends_on:
+        - db
+      networks:
+        - intranet
+
+    nginx:
+      image: nginx:latest
+      container_name: nginx
+      restart: always
+      volumes:
+        - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+        - ./nginx/dhparam:/etc/nginx/dhparam
+        - ./nginx/certbot/conf/:/etc/nginx/ssl/
+        - ./nginx/certbot/data:/usr/share/nginx/html/letsencrypt
+      ports:
+        - 80:80
+        - 443:443
+      networks:
+        - intranet
+
+    certbot:
+      image: certbot/certbot:latest
+      command: certonly --webroot --webroot-path=/usr/share/nginx/html/letsencrypt --email {{ email }} --agree-tos --no-eff-email -d {{ domain }}
+      depends_on:
+        - nginx
+      volumes:
+        - ./nginx/certbot/conf/:/etc/letsencrypt
+        - ./nginx/certbot/logs/:/var/log/letsencrypt
+        - ./nginx/certbot/data:/usr/share/nginx/html/letsencrypt
+      networks:
+        - intranet
+
+    db:
+      image: postgres:latest
+      environment:
+          - POSTGRES_PASSWORD="{{ db_password }}"
+      volumes:
+        - ./db_data/:/var/lib/postgresql/data
+      networks:
+        - intranet
+      restart: always
+    
+    redis:
+      image: redis:latest
+      container_name: redis
+      restart: always
+      networks:
+        - intranet
+
+
+networks: 
+  intranet:

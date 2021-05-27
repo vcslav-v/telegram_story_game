@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link rel="stylesheet"  type="text/css" href="{{url_for('.static', filename='style.css')}}">
+
+    <title>{{ story_name }} - {{ chapter_name }}</title>
+  </head>
+  <body>
+  <div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>{{ story_name }}</h1>
+            <h2>{{ chapter_name }}</h2>
+            {% for msg_item in messages %}
+              {% set msg = msg_item["data"] %}
+              {% set is_attach = msg_item["is_attach"] %}
+              <div class="card{% if is_attach %} text-dark bg-light{% else %} bg-warning{% endif %} mb-3">
+              <div id="{{ msg.id }}" class="message">
+              <div class="card-body">
+              <div class="card-header">
+                <a target="_blank" href="{{ bot_url }}?start=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}"><span class="badge bg-dark">id: {{ msg.id }}</span></a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}"><span class="badge bg-primary">id: {{ msg.parrent }}</span></a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"><span class="badge bg-primary">{{from_btn.text}}</span></a>{% endfor %}{% endif %}{% if not is_attach %} <span class="badge bg-danger">Unattainable!</span>{% endif %}
+              </div>
+
+                <p class="card-text m-2">{{ msg.message }}</p>
+                {% if msg.buttons %}
+                {% for btn in msg.buttons %}
+                    <a class="btn {% if btn.next_message_id %}btn-primary{% else %}btn-secondary{% endif %} " href="#{% if btn.next_message_id %}{{ btn.next_message_id }}{% endif %}">{{ btn.text }}</a>
+                {% endfor %}
+                {% endif %}
+              </div>
+              </div>
+              </div>
+            {% endfor %}
+        </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+  </body>
+</html>

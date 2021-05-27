@@ -107,11 +107,13 @@ sqlalchemy-init:
 	echo '[mypy]' >> setup.cfg
 	echo 'plugins = sqlmypy' >> setup.cfg
 db_revision:
-	docker run --name test-postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=postgres -d -p 5432:5432 postgres
-	sleep 1
 	poetry run alembic revision --autogenerate
-	docker kill test-postgres
-	docker rm test-postgres
 
 db_update:
 	poetry run alembic upgrade head
+
+run:
+	poetry run uvicorn data_base.main:app --reload
+
+req:
+	poetry export>requirements.txt

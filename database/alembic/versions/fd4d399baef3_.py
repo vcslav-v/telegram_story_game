@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 33860c099897
+Revision ID: fd4d399baef3
 Revises: 
-Create Date: 2021-02-25 17:46:41.675999
+Create Date: 2021-05-24 22:29:43.393006
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '33860c099897'
+revision = 'fd4d399baef3'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -37,18 +37,18 @@ def upgrade():
     sa.Column('story_id', sa.Integer(), nullable=False),
     sa.Column('number', sa.Integer(), nullable=False),
     sa.Column('name', sa.Text(), nullable=False),
+    sa.Column('uid', sa.Text(), nullable=True),
     sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('story_id', sa.Integer(), nullable=False),
-    sa.Column('chapter_id', sa.Integer(), nullable=True),
+    sa.Column('chapter_id', sa.Integer(), nullable=False),
+    sa.Column('is_start_chapter', sa.Boolean(), nullable=True),
     sa.Column('message', sa.Text(), nullable=True),
     sa.Column('parent_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['chapter_id'], ['chapters.id'], ),
     sa.ForeignKeyConstraint(['parent_id'], ['messages.id'], ),
-    sa.ForeignKeyConstraint(['story_id'], ['stories.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('buttons',

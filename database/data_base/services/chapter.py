@@ -34,6 +34,8 @@ def make(
     )
     db.add(new_chapter)
     db.commit()
+    new_chapter.make_uid()
+    db.commit()
     db.refresh(new_chapter)
     return new_chapter
 
@@ -158,19 +160,16 @@ def rm(
     return {'result': 'ok'}
 
 
-def set_start_msg(
+def get_chapter_by_uid(
     db: Session,
-    req_body: schemas.StartMsgChapter,
+    req_body: schemas.GetChapterMap,
 ) -> models.Chapter:
-    """Set start msg to chapter."""
-    usr_chapter = get_check_user(db, req_body)
-    req_msg = schemas.GetUserMsg(
-        tg_id=req_body.tg_id,
-        story_id=req_body.story_id,
-        msg_id=req_body.msg_id,
-    )
-    story_msg = message.get_check_user(db, req_msg)
-    usr_chapter.start_message = story_msg
-    db.commit()
-    db.refresh(usr_chapter)
-    return usr_chapter
+    """Return all chapter msgs."""
+    user_chapter = db.query(models.Chapter).filter_by(
+        uid=req_body.chapter_hash,
+    ).first()
+    if user_chapter:
+        return user_chapter
+    err_msg = 'Wrong hash'
+    logger.error(err_msg)
+    raise ValueError(err_msg)

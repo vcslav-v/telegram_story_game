@@ -3,7 +3,7 @@ import logging
 
 from data_base.db_utils import get_db
 from data_base.schemas import (AddButton, EditButton, EditMsg, GetMsg,
-                               GetMsgButton, GetUserMsg, MakeMsg)
+                               GetMsgButton, GetUserMsg, MakeMsg, GetMsgStartForChapter)
 from data_base.services import button, message
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -30,6 +30,16 @@ def get(req_body: GetMsg, db: Session = Depends(get_db)):
     except ValueError as val_err:
         return {'error': val_err.args}
     return new_msg.to_dict()
+
+
+@router.post('/get_start_for_chapter')
+def get_start_for_chapter(req_body: GetMsgStartForChapter, db: Session = Depends(get_db)):
+    """Make and return new message."""
+    try:
+        new_msg = message.get_start_for_chapter(db, req_body)
+    except ValueError as val_err:
+        return {'error': val_err.args}
+    return new_msg.to_dict() if new_msg else {}
 
 
 @router.post('/rm')

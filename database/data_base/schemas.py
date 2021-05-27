@@ -48,7 +48,13 @@ class GetChapter(GetStory):
     chapter_id: int
 
 
-class GetUserChapter(GetUserStory, GetChapter):
+class GetChapterMap(BaseModel):
+    """Chapter map model."""
+
+    chapter_hash: str
+
+
+class GetUserChapter(TgUser, GetChapter):
     """Chapter model."""
 
     pass
@@ -66,35 +72,37 @@ class ReplaceChapter(GetUserChapter):
     new_num: int
 
 
-class GetMsg(GetStory):
+class GetMsg(BaseModel):
     """Message model."""
 
     msg_id: int
 
 
-class GetUserMsg(GetMsg, GetUserStory):
+class GetMsgStartForChapter(BaseModel):
+
+    chapter_id: int
+
+
+class GetUserMsg(TgUser, GetMsg):
     """Message model."""
 
     pass
 
 
-class StartMsgChapter(GetMsg, GetUserChapter):
-    """Message model."""
-
-    pass
-
-
-class MakeMsg(GetUserStory):
+class MakeMsg(GetUserChapter):
     """Message model."""
 
     message: Optional[str]
     next_message_id: Optional[int]
     parrent_message_id: Optional[int]
+    is_start_msg: Optional[bool]
 
 
 class EditMsg(GetUserMsg):
     message: Optional[str]
+    chapter_id: int
     next_message_id: Optional[int]
+    is_start_msg: Optional[bool]
 
 
 class AddButton(GetUserMsg):
@@ -110,7 +118,8 @@ class GetMsgButton(GetUserMsg):
     button_id: int
 
 
-class EditButton(AddButton):
+class EditButton(GetMsgButton):
     """Button model."""
 
     text: Optional[str]
+    link_to_msg_id: Optional[int]

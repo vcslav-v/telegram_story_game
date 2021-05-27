@@ -19,7 +19,10 @@ def start_message(msg):
     print(msg)
     link_data = extract_link_data(msg.text)
     print(link_data)
-    user = tg_user.TelegramUser(msg.chat.id)
+    try:
+        user = tg_user.TelegramUser(msg.chat.id)
+    except Exception as e:
+        print(e)
     print(user.id)
     user_context = mem.UserContext(user.telegram_id)
     user_context.flush_all()

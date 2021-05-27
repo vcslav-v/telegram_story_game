@@ -67,16 +67,19 @@ class Chapter:
         user_context.update_context('chapter_id', str(self.id))
 
         if self.start_message:
-            buttons = [[
-                (
-                    'Все сообщения',
-                    None,
-                    '{app_url}chapter/{chapter_uid}'.format(
-                        app_url=APP_URL,
-                        chapter_uid=hashlib.sha224(bytes(f'{self.chapter_id}{tg_id}', 'utf-8')).hexdigest(),
+            try:
+                buttons = [[
+                    (
+                        'Все сообщения',
+                        None,
+                        '{app_url}chapter/{chapter_uid}'.format(
+                            app_url=APP_URL,
+                            chapter_uid=hashlib.sha224(bytes(f'{self.chapter_id}{tg_id}', 'utf-8')).hexdigest(),
+                        )
                     )
-                )
-            ]]
+                ]]
+            except Exception as e:
+                print(e)
         else:
             buttons = [
                 [('Написать первое сообщение', tools.make_call_back(message.MAKE_PREFIX, {

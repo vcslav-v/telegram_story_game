@@ -19,6 +19,7 @@ from .handlers import story, chapter, user, message
 
 @app.route('/' + BOT_TOKEN, methods=['POST'])
 def getMessage():
+    print('post')
     bot.process_new_updates([
             telebot.types.Update.de_json(
                 request.stream.read().decode("utf-8")
@@ -29,6 +30,7 @@ def getMessage():
 
 @app.route('/' + BOT_TOKEN, methods=['GET'])
 def test():
+    print('get')
     return 'ok-get', 200
 
 

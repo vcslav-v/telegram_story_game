@@ -47,6 +47,6 @@ logger = logging.getLogger(__name__)
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URI,
-    connect_args={'check_same_thread': False},
+    # connect_args={'check_same_thread': False},
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

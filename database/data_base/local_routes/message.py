@@ -2,8 +2,9 @@
 import logging
 
 from data_base.db_utils import get_db
-from data_base.schemas import (AddButton, EditButton, EditMsg, GetMsg,
-                               GetMsgButton, GetUserMsg, MakeMsg, GetMsgStartForChapter)
+from data_base.schemas import (AddButton, EditButton, EditMsg,
+                               GetMsg, GetMsgButton, GetMsgStartForChapter,
+                               GetUserMsg, MakeMsg)
 from data_base.services import button, message
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session

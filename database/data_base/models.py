@@ -1,5 +1,5 @@
 """DataBase models."""
-from sqlalchemy import Column, ForeignKey, Integer, Text, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, Text, Boolean, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import hashlib
@@ -121,8 +121,16 @@ class Message(Base):
     )
 
     is_start_chapter = Column(Boolean, default=False)
-
+    content_type = Column(Text)
     message = Column(Text)
+    media = relationship(
+        'Media',
+        uselist=False,
+        back_populates='parrent_message',
+        cascade='delete-orphan,delete',
+        foreign_keys='[Media.parrent_message_id]',
+    )
+
     parent_id = Column(Integer, ForeignKey('messages.id'))
     link = relationship('Message', lazy='joined', uselist=False, join_depth=1)
 
@@ -143,8 +151,10 @@ class Message(Base):
         """Represent to dict."""
         return {
             'id': self.id,
+            'content_type': self.content_type,
             'chapter_id': self.chapter_id,
             'message': self.message,
+            'media': {'id': self.media.id} if self.media else None,
             'is_start_chapter': self.is_start_chapter,
             'link': self.link.id if self.link else None,
             'parrent': self.parent_id if self.parent_id else None,
@@ -189,3 +199,25 @@ class Button(Base):
                 self.next_message_id if self.next_message_id else None
             ),
         }
+
+
+class Media(Base):
+    __tablename__ = 'media'
+
+    id = Column(Integer, primary_key=True)
+    uid = Column(Text)
+    file_data = Column(LargeBinary, nullable=False)
+    content_type = Column(Text)
+    parrent_message_id = Column(
+        Integer,
+        ForeignKey('messages.id'),
+        nullable=False,
+    )
+    parrent_message = relationship(
+        'Message',
+        back_populates='media',
+        foreign_keys=[parrent_message_id]
+    )
+
+    def make_uid(self):
+        self.uid = hashlib.sha224(bytes(f'{self.id}{self.parrent_message.id}', 'utf-8')).hexdigest()

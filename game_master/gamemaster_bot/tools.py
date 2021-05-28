@@ -49,21 +49,29 @@ def make_inline_keyboard(buttons_rows: List):
     return markup
 
 
-def send_menu_msg(tg_id: int, text: str, buttons: List = [], row_width=1, exit_menu=False):
+def send_menu_msg(
+    tg_id: int,
+    data,
+    buttons: List = [],
+    row_width=1,
+    exit_menu=False,
+    content_type='text'
+):
     user_context = UserContext(tg_id)
     if user_context.get_status() == 'in_menu':
-        bot.edit_message_text(
-            text,
-            tg_id,
-            user_context.get_context('active_menu_msg_id'),
-            reply_markup=make_inline_keyboard(buttons),
-        )
-    else:
+        bot.delete_message(tg_id, user_context.get_context('active_menu_msg_id'))
+
+    if content_type == 'text':
         msg_info = bot.send_message(
-            tg_id, text, reply_markup=make_inline_keyboard(buttons)
+            tg_id, data, reply_markup=make_inline_keyboard(buttons)
         )
-        user_context.set_status('in_menu')
-        user_context.update_context('active_menu_msg_id', msg_info.message_id)
+    elif content_type == 'photo':
+        msg_info = bot.send_photo(
+            tg_id, data['photo'], caption=data['message'], reply_markup=make_inline_keyboard(buttons)
+        )
+
+    user_context.set_status('in_menu')
+    user_context.update_context('active_menu_msg_id', msg_info.message_id)
     if exit_menu:
         user_context.rm_context('active_menu_msg_id')
         user_context.rm_status()

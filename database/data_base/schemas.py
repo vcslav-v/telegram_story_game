@@ -92,18 +92,18 @@ class GetUserMsg(TgUser, GetMsg):
 class MakeMsg(GetUserChapter):
     """Message model."""
 
+    content_type: str
     message: Optional[str]
     next_message_id: Optional[int]
     parrent_message_id: Optional[int]
     is_start_msg: Optional[bool]
 
-
 class EditMsg(GetUserMsg):
+    content_type: str
     message: Optional[str]
     chapter_id: int
     next_message_id: Optional[int]
     is_start_msg: Optional[bool]
-
 
 class AddButton(GetUserMsg):
     """Button model."""

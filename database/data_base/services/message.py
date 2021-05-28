@@ -1,10 +1,10 @@
 """Data base app."""
 import logging
+from typing import Optional
 
 from data_base import models, schemas
 from data_base.services import chapter
 from sqlalchemy.orm import Session
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,11 @@ def make(
 ) -> models.Message:
     """Make new message."""
     user_chapter = chapter.get_check_user(db, req_body)
-    new_msg = models.Message(chapter=user_chapter)
-    if req_body.message:
+    new_msg = models.Message(
+        chapter=user_chapter,
+        content_type=req_body.content_type,
+    )
+    if req_body.content_type == 'text':
         new_msg.message = req_body.message
     if req_body.next_message_id:
         req_msg = schemas.GetUserMsg(
@@ -105,6 +108,7 @@ def rm(db: Session, req_body: schemas.GetUserMsg) -> dict:
 def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
     """Edit text message by id."""
     msg = get_check_user(db, req_body)
+    msg.content_type = req_body.content_type
     if req_body.message:
         msg.message = req_body.message
     if req_body.next_message_id:

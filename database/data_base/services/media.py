@@ -27,6 +27,7 @@ def make(
             parrent_message=usr_message,
         )
         db.add(media)
+    print(file_data.content_type)
     media.content_type = file_data.content_type
     media.file_data = file_data.file.read()
     db.commit()

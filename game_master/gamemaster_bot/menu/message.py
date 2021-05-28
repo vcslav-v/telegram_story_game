@@ -57,7 +57,7 @@ def make_new_msg(tg_id: int, data: dict, content_type: str):
             ).text
         )
     if content_type == 'photo':
-        files = {'file_data': data['photo']}
+        files = {'file_data': (data['name'], data['photo'], data['content_type'])}
         payload = {
             'tg_id': tg_id,
             'message_id': new_msg_resp.get('id'),
@@ -279,7 +279,7 @@ class Message:
         )
 
         if content_type == 'photo':
-            files = {'file_data': data['photo']}
+            files = {'file_data': (data['name'], data['photo'], data['content_type'])}
             payload = {
                 'tg_id': tg_id,
                 'message_id': self.id,

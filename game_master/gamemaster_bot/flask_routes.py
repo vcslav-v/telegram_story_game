@@ -54,7 +54,6 @@ def chapter_map(chapter_hash):
                     next_msgs.append(msg['id'])
                     writed_msgs.add(msg['id'])
                     break
-    print(messages[1]['data']['media'][:10])
     return render_template(
         'chapter_template.html',
         story_name=chapter_map_resp['story'],

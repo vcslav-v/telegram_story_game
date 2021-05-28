@@ -57,15 +57,16 @@ def make_new_msg(tg_id: int, data: dict, content_type: str):
             ).text
         )
     if content_type == 'photo':
-        multipart_form_data = {
-            'file_data': data['photo'],
-            'tg_id': int(tg_id),
-            'message_id': int(new_msg_resp.get('id')),
+        files = {'file_data': data['photo']}
+        payload = {
+            'tg_id': tg_id,
+            'message_id': new_msg_resp.get('id'),
         }
-        print(requests.post(
+        requests.post(
             DB_URL.format(item='media', cmd='make'),
-            files=multipart_form_data,
-        ).text)
+            files=files,
+            data=payload,
+        ).text
 
     if from_msg_id and from_btn_id:
         requests.post(
@@ -275,15 +276,16 @@ class Message:
         )
 
         if content_type == 'photo':
-            multipart_form_data = {
-                'file_data': data['photo'],
+            files = {'file_data': data['photo']}
+            payload = {
                 'tg_id': tg_id,
                 'message_id': self.id,
             }
             requests.post(
                 DB_URL.format(item='media', cmd='make'),
-                files=multipart_form_data,
-            )
+                files=files,
+                data=payload,
+            ).text
 
         if edit_msg_resp.get('error'):
             msg = edit_msg_resp.get('error')

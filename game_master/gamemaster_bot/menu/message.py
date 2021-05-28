@@ -113,8 +113,9 @@ class Message:
             photo = requests.get(
                 DB_URL.format(
                     item='media',
-                    cmd=hashlib.sha224(bytes(f'{self.media["id"]}{self.id}', 'utf-8')).hexdigest()
-                )
+                    cmd='{item_id}',
+                ),
+                params={'item_id': hashlib.sha224(bytes(f'{self.media["id"]}{self.id}', 'utf-8')).hexdigest()}
             ).content
             data['photo'] = photo
             data['caption'] = self.message

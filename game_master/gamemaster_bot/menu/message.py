@@ -62,11 +62,11 @@ def make_new_msg(tg_id: int, data: dict, content_type: str):
             'tg_id': tg_id,
             'message_id': new_msg_resp.get('id'),
         }
-        print(requests.post(
+        requests.post(
             DB_URL.format(item='media', cmd='make'),
             files=files,
             data=payload,
-        ).text)
+        )
 
     if from_msg_id and from_btn_id:
         requests.post(
@@ -80,10 +80,7 @@ def make_new_msg(tg_id: int, data: dict, content_type: str):
             )
     user_context.flush_params()
     _message = Message(new_msg_resp.get('id'))
-    try:
-        _message.show(tg_id)
-    except Exception as e:
-        print(e)
+    _message.show(tg_id)
 
 
 class Message:
@@ -113,7 +110,7 @@ class Message:
             photo = requests.get(
                 DB_URL.format(
                     item='media',
-                    cmd='{item_id}',
+                    cmd='get/{item_id}',
                 ),
                 params={'item_id': hashlib.sha224(bytes(f'{self.media["id"]}{self.id}', 'utf-8')).hexdigest()}
             ).content
@@ -206,7 +203,7 @@ class Message:
         tools.send_menu_msg(tg_id, data, buttons, content_type=self.content_type)
 
     def get_new_msg(self, tg_id: int):
-        text = f'Прошлое сообщение:\n{self.message}\n\nНовый вариант:'
+        text = 'Новое сообщение:'
         buttons = [
                 [('Назад', tools.make_call_back(SHOW_PREFIX))],
             ]

@@ -67,7 +67,7 @@ def send_menu_msg(
         )
     elif content_type == 'photo':
         msg_info = bot.send_photo(
-            tg_id, data['photo'], caption=data['message'], reply_markup=make_inline_keyboard(buttons)
+            tg_id, data['photo'], caption=data['caption'], reply_markup=make_inline_keyboard(buttons)
         )
 
     user_context.set_status('in_menu')

@@ -59,7 +59,7 @@ def make_new_msg(tg_id: int, data: dict, content_type: str):
     if content_type == 'photo':
         multipart_form_data = {
             'file_data': data['photo'],
-            'tg_id': tg_id,
+            'tg_id': int(tg_id),
             'message_id': int(new_msg_resp.get('id')),
         }
         print(requests.post(

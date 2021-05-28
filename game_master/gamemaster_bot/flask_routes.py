@@ -2,6 +2,8 @@ from gamemaster_bot import DB_URL, BOT_URL, app
 from flask import render_template
 import requests
 import json
+import hashlib
+import base64
 
 
 @app.route("/chapter/<chapter_hash>")
@@ -34,6 +36,14 @@ def chapter_map(chapter_hash):
                 if btn['next_message_id'] not in writed_msgs and btn['next_message_id']:
                     next_msgs.append(btn['next_message_id'])
                     writed_msgs.add(btn['next_message_id'])
+        if msg['content_type'] != 'text':
+            msg['media'] = base64.b64encode(requests.get(
+                DB_URL.format(
+                    item='media',
+                    cmd='get/{item_id}',
+                ),
+                params={'item_id': hashlib.sha224(bytes(f'{msg["media"]["id"]}{msg["id"]}', 'utf-8')).hexdigest()}
+            ).content).decode('utf-8')
         messages.append({'data': msg, 'is_attach': attach})
         if len(next_msgs) == 0:
             attach = False
@@ -44,7 +54,7 @@ def chapter_map(chapter_hash):
                     next_msgs.append(msg['id'])
                     writed_msgs.add(msg['id'])
                     break
-
+    print(messages[1]['data']['media'][:10])
     return render_template(
         'chapter_template.html',
         story_name=chapter_map_resp['story'],

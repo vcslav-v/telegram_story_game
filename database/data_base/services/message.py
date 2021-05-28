@@ -19,7 +19,7 @@ def make(
         chapter=user_chapter,
         content_type=req_body.content_type,
     )
-    if req_body.content_type == 'text':
+    if req_body.message:
         new_msg.message = req_body.message
     if req_body.next_message_id:
         req_msg = schemas.GetUserMsg(

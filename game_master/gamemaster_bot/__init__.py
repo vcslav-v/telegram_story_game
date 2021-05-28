@@ -33,6 +33,7 @@ def test():
     return 'ok', 200
 
 
-url = APP_URL + BOT_TOKEN
-bot.remove_webhook()
-bot.set_webhook(url)
+# url = APP_URL + BOT_TOKEN
+# bot.remove_webhook()
+# bot.set_webhook(url)
+bot.polling()

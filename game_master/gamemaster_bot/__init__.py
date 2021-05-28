@@ -14,8 +14,8 @@ bot = telebot.TeleBot(BOT_TOKEN)
 app = Flask(__name__)
 
 
-from gamemaster_bot.handlers import story, chapter, user, message
-from gamemaster_bot import flask_routes
+from .handlers import story, chapter, user, message
+from . import flask_routes
 
 
 @app.route('/' + BOT_TOKEN, methods=['POST'])

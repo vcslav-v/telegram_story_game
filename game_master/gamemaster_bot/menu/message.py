@@ -62,11 +62,11 @@ def make_new_msg(tg_id: int, data: dict, content_type: str):
             'tg_id': tg_id,
             'message_id': new_msg_resp.get('id'),
         }
-        requests.post(
+        print(requests.post(
             DB_URL.format(item='media', cmd='make'),
             files=files,
             data=payload,
-        ).text
+        ).text)
 
     if from_msg_id and from_btn_id:
         requests.post(
@@ -80,7 +80,10 @@ def make_new_msg(tg_id: int, data: dict, content_type: str):
             )
     user_context.flush_params()
     _message = Message(new_msg_resp.get('id'))
-    _message.show(tg_id)
+    try:
+        _message.show(tg_id)
+    except Exception as e:
+        print(e)
 
 
 class Message:

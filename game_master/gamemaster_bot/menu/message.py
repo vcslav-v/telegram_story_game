@@ -35,24 +35,39 @@ def get_new_msg(
     )
 
 
-def make_new_msg(tg_id: int, msg: str):
+def make_new_msg(tg_id: int, data: dict, content_type: str):
     user_context = mem.UserContext(tg_id)
     params = user_context.get_params()
     from_msg_id = params.get('from_msg_id')
     from_btn_id = params.get('from_btn_id')
+    req_data = {
+        'tg_id': tg_id,
+        'content_type': content_type,
+        'message': data.get('message'),
+        'story_id': user_context.get_context('story_id'),
+        'chapter_id': user_context.get_context('chapter_id'),
+        'parrent_message_id': from_msg_id if from_msg_id and not from_btn_id else None,
+        'is_start_msg': True if params.get('is_start_chapter_msg') else False,
+    }
+
     new_msg_resp = json.loads(
             requests.post(
                 DB_URL.format(item='message', cmd='make'),
-                json={
-                    'tg_id': tg_id,
-                    'story_id': user_context.get_context('story_id'),
-                    'chapter_id': user_context.get_context('chapter_id'),
-                    'message': msg,
-                    'parrent_message_id': from_msg_id if from_msg_id and not from_btn_id else None,
-                    'is_start_msg': True if params.get('is_start_chapter_msg') else False,
-                },
+                json=req_data,
             ).text
         )
+    if content_type == 'photo':
+        files = {'file_data': (data['name'], data['photo'], data['content_type'])}
+        payload = {
+            'tg_id': tg_id,
+            'message_id': new_msg_resp.get('id'),
+        }
+        requests.post(
+            DB_URL.format(item='media', cmd='make'),
+            files=files,
+            data=payload,
+        )
+
     if from_msg_id and from_btn_id:
         requests.post(
                 DB_URL.format(item='message', cmd='edit_button'),
@@ -77,16 +92,30 @@ class Message:
             ).text
         )
         self.id = int(msg_resp.get('id'))
+        self.content_type = msg_resp.get('content_type')
         self.is_start_chapter = msg_resp.get('is_start_chapter')
         self.chapter_id = int(msg_resp.get('chapter_id'))
         self.message = msg_resp.get('message')
+        self.media = msg_resp.get('media')
         self.link = msg_resp.get('link')
         self.from_buttons = msg_resp.get('from_buttons')
         self.parrent = msg_resp.get('parrent')
         self.buttons = msg_resp.get('buttons')
 
     def show(self, tg_id: int):
-        text = self.message
+        if self.content_type == 'text':
+            data = self.message
+        elif self.content_type == 'photo':
+            data = {}
+            photo = requests.get(
+                DB_URL.format(
+                    item='media',
+                    cmd='get/{item_id}',
+                ),
+                params={'item_id': hashlib.sha224(bytes(f'{self.media["id"]}{self.id}', 'utf-8')).hexdigest()}
+            ).content
+            data['photo'] = photo
+            data['caption'] = self.message
         user_context = mem.UserContext(tg_id)
         user_context.rm_status()
         user_context.update_context('message_id', str(self.id))
@@ -171,10 +200,10 @@ class Message:
             ),
         ])
 
-        tools.send_menu_msg(tg_id, text, buttons)
+        tools.send_menu_msg(tg_id, data, buttons, content_type=self.content_type)
 
     def get_new_msg(self, tg_id: int):
-        text = f'Прошлое сообщение:\n{self.message}\n\nНовый вариант:'
+        text = 'Новое сообщение:'
         buttons = [
                 [('Назад', tools.make_call_back(SHOW_PREFIX))],
             ]
@@ -230,28 +259,42 @@ class Message:
             msg = rm_btn_msg_resp.get('error')
             tools.send_menu_msg(tg_id, msg)
         else:
-            print(rm_btn_msg_resp)
             self.buttons = rm_btn_msg_resp.get('buttons')
             self.show(tg_id)
 
-    def edit(self, tg_id: int, text: str):
+    def edit(self, tg_id: int, data: dict, content_type: str):
+        req_data = {
+            'msg_id': self.id,
+            'message': data['message'],
+            'content_type': content_type,
+            'tg_id': tg_id,
+        }
         edit_msg_resp = json.loads(
             requests.post(
                 DB_URL.format(item='message', cmd='edit'),
-                json={
-                    'msg_id': self.id,
-                    'tg_id': tg_id,
-                    'message': text,
-                },
+                json=req_data,
             ).text
         )
+
+        if content_type == 'photo':
+            files = {'file_data': (data['name'], data['photo'], data['content_type'])}
+            payload = {
+                'tg_id': tg_id,
+                'message_id': self.id,
+            }
+            requests.post(
+                DB_URL.format(item='media', cmd='make'),
+                files=files,
+                data=payload,
+            ).text
+
         if edit_msg_resp.get('error'):
             msg = edit_msg_resp.get('error')
             tools.send_menu_msg(tg_id, msg)
         else:
-            self.message = text
+            self.message = data['message']
             self.show(tg_id)
-    
+
     def add_direct_link(self, tg_id: int, to_msg_id: str):
         edit_msg_resp = json.loads(
             requests.post(

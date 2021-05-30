@@ -6,12 +6,15 @@ from os import environ
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{user}:{password}@{host}/{dbname}'.format(
-    user='postgres',
-    password=environ.get('DB_PASSWORD'),
-    host=environ.get('DB_URL'),
-    dbname='postgres'
-)
+if environ.get('DB_URL'):
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{user}:{password}@{host}/{dbname}'.format(
+        user='postgres',
+        password=environ.get('DB_PASSWORD'),
+        host=environ.get('DB_URL'),
+        dbname='postgres',
+    )
+else:
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///foo.db'
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -42,5 +45,8 @@ LOGGING_CONFIG = {
 dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger(__name__)
 
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URI,
+    # connect_args={'check_same_thread': False},
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -1,6 +1,7 @@
 from gamemaster_bot import bot
 from gamemaster_bot import tools, mem
 from gamemaster_bot.menu import message
+import os
 
 
 @bot.callback_query_handler(
@@ -98,17 +99,26 @@ def add_direct_link_msg(call):
 
 
 @bot.message_handler(
-    content_types='text',
+    content_types=['photo', 'text'],
     func=tools.is_wait_line_for(message.MAKE_PREFIX),
 )
 def wait_line_make(msg):
     user_context = mem.UserContext(msg.from_user.id)
     user_context.rm_status()
-    message.make_new_msg(msg.from_user.id, msg.text)
+    data = {}
+    if msg.content_type == 'text':
+        data['message'] = msg.text
+    elif msg.content_type == 'photo':
+        photo = bot.get_file(sorted(msg.photo, key=lambda item: item.width)[-1].file_id)
+        data['name'] = os.path.basename(photo.file_path)
+        data['content_type'] = f'image/{data["name"].split(".")[-1]}'
+        data['photo'] = bot.download_file(photo.file_path)
+        data['message'] = msg.caption
+    message.make_new_msg(msg.from_user.id, data, msg.content_type)
 
 
 @bot.message_handler(
-    content_types='text',
+    content_types=['photo', 'text'],
     func=tools.is_wait_line_for(message.EDIT_PREFIX),
 )
 def wait_line_edit(msg):
@@ -117,7 +127,16 @@ def wait_line_edit(msg):
     _message = message.Message(
         user_context.get_context('message_id'),
         )
-    _message.edit(msg.from_user.id, msg.text)
+    data = {}
+    if msg.content_type == 'text':
+        data['message'] = msg.text
+    elif msg.content_type == 'photo':
+        photo = bot.get_file(sorted(msg.photo, key=lambda item: item.width)[-1].file_id)
+        data['name'] = os.path.basename(photo.file_path)
+        data['content_type'] = f'image/{data["name"].split(".")[-1]}'
+        data['photo'] = bot.download_file(photo.file_path)
+        data['message'] = msg.caption
+    _message.edit(msg.from_user.id, data, msg.content_type)
 
 
 @bot.message_handler(

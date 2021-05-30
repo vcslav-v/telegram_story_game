@@ -25,11 +25,35 @@ def chapter_map(chapter_hash):
             writed_msgs = {msg['id']}
         story_dict[msg['id']] = msg
     messages = []
+    next_chapter_msgs = []
     attach = True
     while len(next_msgs) > 0:
-        msgs = [story_dict[msg_id] for msg_id in next_msgs]
+        msgs = []
+        for msg_id in next_msgs:
+            if msg_id in story_dict.keys():
+                msgs.append(story_dict.get(msg_id))
+            else:
+                next_chapter_msgs.append(json.loads(
+                    requests.post(
+                        DB_URL.format(item='message', cmd='get'),
+                        json={
+                            'msg_id': msg_id,
+                        },
+                    ).text
+                ))
+                if next_chapter_msgs[-1]['content_type'] != 'text':
+                    next_chapter_msgs[-1]['media'] = base64.b64encode(requests.get(
+                        DB_URL.format(
+                            item='media',
+                            cmd='get/{item_id}',
+                        ),
+                        params={'item_id': hashlib.sha224(bytes(f'{next_chapter_msgs[-1]["media"]["id"]}{next_chapter_msgs[-1]["id"]}', 'utf-8')).hexdigest()}
+                    ).content).decode('utf-8')
+
         next_msgs = []
         for msg in msgs:
+            if not msg:
+                continue
             if msg['link'] and msg['link'] not in writed_msgs:
                 next_msgs.append(msg['link'])
                 writed_msgs.add(msg['link'])
@@ -63,4 +87,5 @@ def chapter_map(chapter_hash):
         story_id=chapter_map_resp['story_id'],
         bot_url=BOT_URL,
         messages=messages,
+        next_chapter_msgs=next_chapter_msgs,
     )

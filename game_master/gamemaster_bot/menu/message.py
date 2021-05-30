@@ -7,6 +7,7 @@ import json
 
 MAKE_PREFIX = 'make_msg?'
 SHOW_PREFIX = 'show_msg?'
+RM_PREFIX = 'rm_msg?'
 ADD_BUTTON_PREFIX = 'add_btn_msg?'
 RM_BUTTON_PREFIX = 'rm_btn_msg?'
 EDIT_BUTTON_PREFIX = 'edit_btn_msg?'
@@ -92,6 +93,7 @@ class Message:
             ).text
         )
         self.id = int(msg_resp.get('id'))
+        self.story_id = msg_resp.get('story_id')
         self.content_type = msg_resp.get('content_type')
         self.is_start_chapter = msg_resp.get('is_start_chapter')
         self.chapter_id = int(msg_resp.get('chapter_id'))
@@ -188,6 +190,7 @@ class Message:
                     tools.make_call_back(SHOW_PREFIX, {'msg_id': from_btn['parrent_message_id']}),
                 ))
         buttons.append(back_from_buttons)
+        buttons.append([('Удалить', tools.make_call_back(RM_PREFIX))])
         buttons.append([
             ('К главе', tools.make_call_back(chapter.SHOW_PREFIX)),
             (
@@ -294,6 +297,31 @@ class Message:
         else:
             self.message = data['message']
             self.show(tg_id)
+
+    def rm(self, tg_id: int):
+        req_data = {
+            'msg_id': self.id,
+            'tg_id': tg_id,
+        }
+        rm_msg_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='rm'),
+                json=req_data,
+            ).text
+        )
+        if rm_msg_resp.get('error'):
+            msg = rm_msg_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            chapter.Chapter(self.story_id, self.chapter_id).show(tg_id)
+
+    def make_sure_rm(self, tg_id: int):
+        msg = 'Вы уверены, что хотите удалить это сообщение ?'
+        buttons = [
+            [('Да', tools.make_call_back(RM_PREFIX, {'is_sure': True}))],
+            [('Нет', tools.make_call_back(SHOW_PREFIX))],
+        ]
+        tools.send_menu_msg(tg_id, msg, buttons)
 
     def add_direct_link(self, tg_id: int, to_msg_id: str):
         edit_msg_resp = json.loads(

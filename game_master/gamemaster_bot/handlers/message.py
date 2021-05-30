@@ -30,6 +30,21 @@ def show_msg(call):
 
 
 @bot.callback_query_handler(
+    func=tools.is_correct_prefix(message.RM_PREFIX)
+)
+def rm_message(call):
+    user_context = mem.UserContext(call.from_user.id)
+    params = tools.get_call_back_params(call.data)
+    _message = message.Message(
+        int(user_context.get_context('message_id')),
+    )
+    if params.get('is_sure'):
+        _message.rm(call.from_user.id)
+    else:
+        _message.make_sure_rm(call.from_user.id)
+
+
+@bot.callback_query_handler(
     func=tools.is_correct_prefix(message.EDIT_PREFIX)
 )
 def edit_msg(call):

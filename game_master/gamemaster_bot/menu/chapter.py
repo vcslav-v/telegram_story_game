@@ -62,7 +62,7 @@ class Chapter:
         self.start_message = first_msg
 
     def show(self, tg_id: int):
-        msg = self.name
+        msg = f'id: {self.id}\n{self.name}'
         user_context = mem.UserContext(tg_id)
         user_context.update_context('chapter_id', str(self.id))
 

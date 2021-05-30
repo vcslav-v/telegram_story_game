@@ -152,6 +152,7 @@ class Message(Base):
         return {
             'id': self.id,
             'content_type': self.content_type,
+            'story_id': self.chapter.story_id,
             'chapter_id': self.chapter_id,
             'message': self.message,
             'media': {'id': self.media.id} if self.media else None,

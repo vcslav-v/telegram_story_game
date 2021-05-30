@@ -162,6 +162,11 @@ class Message:
             )))
 
         if not self.buttons:
+            direct_msg_buttons.append(
+                    ('Add direct link', tools.make_call_back(ADD_DIRECT_LINK_PREFIX, {
+                        'from_msg_id': self.id,
+                    }))
+                )
             if self.link:
                 direct_msg_buttons.append(
                     ('Next direct msg', tools.make_call_back(
@@ -175,11 +180,7 @@ class Message:
                         'from_msg_id': self.id,
                     }))
                 )
-            direct_msg_buttons.append(
-                    ('Add direct link', tools.make_call_back(ADD_DIRECT_LINK_PREFIX, {
-                        'from_msg_id': self.id,
-                    }))
-                )
+
 
         buttons.append(direct_msg_buttons)
         back_from_buttons = []

@@ -27,24 +27,26 @@ def chapter_map(chapter_hash):
     messages = []
     attach = True
     while len(next_msgs) > 0:
-        msg = story_dict[next_msgs.pop()]
-        if msg['link'] and msg['link'] not in writed_msgs:
-            next_msgs.append(msg['link'])
-            writed_msgs.add(msg['link'])
-        elif msg['buttons']:
-            for btn in msg['buttons'][::-1]:
-                if btn['next_message_id'] not in writed_msgs and btn['next_message_id']:
-                    next_msgs.append(btn['next_message_id'])
-                    writed_msgs.add(btn['next_message_id'])
-        if msg['content_type'] != 'text':
-            msg['media'] = base64.b64encode(requests.get(
-                DB_URL.format(
-                    item='media',
-                    cmd='get/{item_id}',
-                ),
-                params={'item_id': hashlib.sha224(bytes(f'{msg["media"]["id"]}{msg["id"]}', 'utf-8')).hexdigest()}
-            ).content).decode('utf-8')
-        messages.append({'data': msg, 'is_attach': attach})
+        msgs = [story_dict[msg_id] for msg_id in next_msgs]
+        next_msgs = []
+        for msg in msgs:
+            if msg['link'] and msg['link'] not in writed_msgs:
+                next_msgs.append(msg['link'])
+                writed_msgs.add(msg['link'])
+            elif msg['buttons']:
+                for btn in msg['buttons'][::-1]:
+                    if btn['next_message_id'] not in writed_msgs and btn['next_message_id']:
+                        next_msgs.append(btn['next_message_id'])
+                        writed_msgs.add(btn['next_message_id'])
+            if msg['content_type'] != 'text':
+                msg['media'] = base64.b64encode(requests.get(
+                    DB_URL.format(
+                        item='media',
+                        cmd='get/{item_id}',
+                    ),
+                    params={'item_id': hashlib.sha224(bytes(f'{msg["media"]["id"]}{msg["id"]}', 'utf-8')).hexdigest()}
+                ).content).decode('utf-8')
+            messages.append({'data': msg, 'is_attach': attach})
         if len(next_msgs) == 0:
             attach = False
             unattached_keys = story_dict.keys() - writed_msgs

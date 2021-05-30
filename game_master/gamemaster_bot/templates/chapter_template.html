@@ -27,16 +27,20 @@
                 <a target="_blank" href="{{ bot_url }}?start=edit_message_id-{{ msg.id }}ZZstory_id-{{ story_id }}"><span class="badge bg-dark">id: {{ msg.id }}</span></a> ⇚{% if msg.parrent %} <a href="#{{ msg.parrent }}"><span class="badge bg-primary">id: {{ msg.parrent }}</span></a>{% endif %}{% if msg.from_buttons %}{% for from_btn in msg.from_buttons %} <a href="#{{from_btn.parrent_message_id}}"><span class="badge bg-primary">{{from_btn.text}}</span></a>{% endfor %}{% endif %}{% if not is_attach %} <span class="badge bg-danger">Unattainable!</span>{% endif %}
               </div> 
                 {% if  msg.content_type == 'photo' %}
-
-                  <img class="card-img{% if not msg.message %} mb-2{% endif %}" src="data:image/jpeg;base64,{{ msg.media }}">
+                <div class="d-flex justify-content-center">
+                  <img class="card-img-top{% if not msg.message %} mb-2{% endif %} mx-auto" src="data:image/jpeg;base64,{{ msg.media }}">
+                </div>
                 {% endif %}
                 {% if msg.message %}
                   <p class="card-text m-2">{{ msg.message }}</p>
                 {% endif %}
                 {% if msg.buttons %}
                 {% for btn in msg.buttons %}
-                    <a class="btn {% if btn.next_message_id %}btn-primary{% else %}btn-secondary{% endif %} " href="#{% if btn.next_message_id %}{{ btn.next_message_id }}{% endif %}">{{ btn.text }}</a>
+                    <a class="btn {% if btn.next_message_id %}btn-primary{% else %}btn-secondary{% endif %} m-1" href="#{% if btn.next_message_id %}{{ btn.next_message_id }}{% endif %}">{{ btn.text }}</a>
                 {% endfor %}
+                {% endif %}
+                {% if msg.link %}
+                    <a class="btn btn-info m-1" href="#{{ msg.link }}">Direct link</a>
                 {% endif %}
               </div>
               </div>

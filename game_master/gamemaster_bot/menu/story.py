@@ -6,6 +6,8 @@ import requests
 
 SHOW_PREFIX = 'show_story?'
 MAKE_PREFIX = 'make_story?'
+SET_BASE_TIMEOUT = 'set_base_timeout?'
+SET_K_TIMEOUT = 'set_k_timeout?'
 RENAME_PREFIX = 'rename_story?'
 RM_PREFIX = 'rm_story?'
 SHOW_CHAPTERS_PREFIX = 'show_story_chapters?'
@@ -48,6 +50,8 @@ class Story:
         )
         self.id = int(story_resp.get('id'))
         self.name = story_resp.get('name')
+        self.base_timeout = story_resp.get('base_timeout')
+        self.k_timeout = story_resp.get('k_timeout')
         self.author_id = int(story_resp.get('author_id'))
         self.chapters = sorted(
             story_resp.get('chapters'),
@@ -62,6 +66,10 @@ class Story:
         buttons = [
             [('Посмотреть главы', tools.make_call_back(SHOW_CHAPTERS_PREFIX))],
             [('Переименовать', tools.make_call_back(RENAME_PREFIX))],
+            [
+                (f'Задержка {self.base_timeout}c', tools.make_call_back(SET_BASE_TIMEOUT)),
+                (f'Скорость набора {self.k_timeout} знак/мин', tools.make_call_back(SET_K_TIMEOUT)),
+            ],
             [('Удалить', tools.make_call_back(RM_PREFIX, {'is_sure': False}))],
             [('Все истории', tools.make_call_back(tg_user.SHOW_STORIES_PREFIX))],
         ]
@@ -158,3 +166,46 @@ class Story:
         ])
 
         tools.send_menu_msg(tg_id, msg, buttons, 3)
+
+    def set_base_timeout(self, tg_id: int, base_timeout: int):
+        edited_story_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='story', cmd='edit'),
+                json={
+                    'story_id': self.id,
+                    'tg_id': tg_id,
+                    'base_timeout': base_timeout,
+                },
+            ).text
+        )
+        if edited_story_resp.get('error'):
+            msg = edited_story_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.base_timeout = edited_story_resp.get('base_timeout')
+            self.show(tg_id)
+
+    def set_k_timeout(self, tg_id: int, k_timeout: int):
+        edited_story_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='story', cmd='edit'),
+                json={
+                    'story_id': self.id,
+                    'tg_id': tg_id,
+                    'k_timeout': k_timeout,
+                },
+            ).text
+        )
+        if edited_story_resp.get('error'):
+            msg = edited_story_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.k_timeout = edited_story_resp.get('k_timeout')
+            self.show(tg_id)
+    
+    def get_timeout(self, tg_id: int, prefix: str):
+        msg = 'Hовое значение'
+        tools.send_menu_msg(tg_id, msg, exit_menu=True)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': prefix})

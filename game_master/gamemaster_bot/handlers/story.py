@@ -36,6 +36,24 @@ def rename_story(call):
 
 
 @bot.callback_query_handler(
+    func=tools.is_correct_prefix(story.SET_BASE_TIMEOUT)
+)
+def edit_base_timeout_story(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _story = story.Story(int(user_context.get_context('story_id')))
+    _story.get_timeout(call.from_user.id, story.SET_BASE_TIMEOUT)
+
+
+@bot.callback_query_handler(
+    func=tools.is_correct_prefix(story.SET_K_TIMEOUT)
+)
+def edit_k_timeout_story(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _story = story.Story(int(user_context.get_context('story_id')))
+    _story.get_timeout(call.from_user.id, story.SET_K_TIMEOUT)
+
+
+@bot.callback_query_handler(
     func=tools.is_correct_prefix(story.MAKE_PREFIX)
 )
 def make_story(call):
@@ -60,6 +78,38 @@ def wait_line_rename(message):
     user_context.rm_status()
     _story = story.Story(user_context.get_context('story_id'))
     _story.rename(message.from_user.id, message.text)
+
+
+@bot.message_handler(
+    content_types='text',
+    func=tools.is_wait_line_for(story.SET_BASE_TIMEOUT),
+)
+def wait_line_base_timeout(message):
+    user_context = mem.UserContext(message.from_user.id)
+    user_context.rm_status()
+    _story = story.Story(user_context.get_context('story_id'))
+    try:
+        int(message.text)
+    except:
+        _story.show(message.from_user.id)
+    else:
+        _story.set_base_timeout(message.from_user.id, int(message.text))
+
+
+@bot.message_handler(
+    content_types='text',
+    func=tools.is_wait_line_for(story.SET_K_TIMEOUT),
+)
+def wait_line_k_timeout(message):
+    user_context = mem.UserContext(message.from_user.id)
+    user_context.rm_status()
+    _story = story.Story(user_context.get_context('story_id'))
+    try:
+        int(message.text)
+    except:
+        _story.show(message.from_user.id)
+    else:
+        _story.set_k_timeout(message.from_user.id, int(message.text))
 
 
 @bot.message_handler(

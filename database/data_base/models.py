@@ -38,7 +38,8 @@ class Story(Base):
         Integer, ForeignKey('telegram_users.id'), nullable=False,
     )
     author = relationship('TelegramUser', back_populates='stories')
-
+    base_timeout = Column(Integer, default=4)
+    k_timeout = Column(Integer, default=200)
     chapters = relationship(
         'Chapter',
         back_populates='story',
@@ -50,6 +51,8 @@ class Story(Base):
         return {
             'id': self.id,
             'name': self.name,
+            'base_timeout': self.base_timeout,
+            'k_timeout': self.k_timeout,
             'author_id': self.author_id,
             'chapters': [chapter.to_dict() for chapter in self.chapters],
         }
@@ -132,7 +135,7 @@ class Message(Base):
 
     parent_id = Column(Integer, ForeignKey('messages.id'))
     link = relationship('Message', lazy='joined', uselist=False, join_depth=1)
-
+    timeout = Column(Integer)
     own_buttons = relationship(
         'Button',
         back_populates='parrent_message',
@@ -154,6 +157,7 @@ class Message(Base):
             'content_type': self.content_type,
             'story_id': self.chapter.story_id,
             'chapter_id': self.chapter_id,
+            'timeout': self.timeout,
             'message': self.message,
             'media': {'id': self.media.id} if self.media else None,
             'is_start_chapter': self.is_start_chapter,

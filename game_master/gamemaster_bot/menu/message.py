@@ -8,6 +8,7 @@ import json
 MAKE_PREFIX = 'make_msg?'
 SHOW_PREFIX = 'show_msg?'
 RM_PREFIX = 'rm_msg?'
+EDIT_TIMEOUT_PREFIX = 'edit_timeout?'
 ADD_BUTTON_PREFIX = 'add_btn_msg?'
 RM_BUTTON_PREFIX = 'rm_btn_msg?'
 EDIT_BUTTON_PREFIX = 'edit_btn_msg?'
@@ -96,6 +97,7 @@ class Message:
         self.id = int(msg_resp.get('id'))
         self.story_id = msg_resp.get('story_id')
         self.content_type = msg_resp.get('content_type')
+        self.timeout = msg_resp.get('timeout')
         self.is_start_chapter = msg_resp.get('is_start_chapter')
         self.chapter_id = int(msg_resp.get('chapter_id'))
         self.message = msg_resp.get('message')
@@ -163,6 +165,7 @@ class Message:
         buttons.append(
             [
                 ('Редактировать', tools.make_call_back(EDIT_PREFIX)),
+                (f'Задержка - {self.timeout}с.', tools.make_call_back(EDIT_TIMEOUT_PREFIX)),
             ]
         )
         direct_msg_buttons = []
@@ -311,6 +314,28 @@ class Message:
             self.message = data['message']
             self.show(tg_id)
 
+    def edit_timeout(self, tg_id: int, timeout: int):
+        req_data = {
+            'msg_id': self.id,
+            'chapter_id': self.chapter_id,
+            'timeout': timeout,
+            'content_type': self.content_type,
+            'tg_id': tg_id,
+        }
+        edit_msg_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='edit'),
+                json=req_data,
+            ).text
+        )
+
+        if edit_msg_resp.get('error'):
+            msg = edit_msg_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.timeout = edit_msg_resp['timeout']
+            self.show(tg_id)
+
     def rm(self, tg_id: int):
         req_data = {
             'msg_id': self.id,
@@ -364,6 +389,16 @@ class Message:
         user_context = mem.UserContext(tg_id)
         user_context.set_status('wait_line')
         user_context.set_params({'call_to': EDIT_BUTTON_PREFIX, 'btn_id': btn_id})
+
+    def get_timeout(self, tg_id: int):
+        text = 'Новая задержка:'
+        buttons = [
+                [('Назад', tools.make_call_back(SHOW_PREFIX))],
+            ]
+        tools.send_menu_msg(tg_id, text, buttons)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': EDIT_TIMEOUT_PREFIX})
 
     def get_link_btn(self, tg_id: int, btn_id: int):
         text = 'ID сообщения:'

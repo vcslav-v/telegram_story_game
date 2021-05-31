@@ -97,3 +97,18 @@ def rename(
     db.commit()
     db.refresh(user_story)
     return user_story
+
+
+def edit(
+    db: Session,
+    req_body: schemas.EditStory,
+) -> models.Story:
+    """Edit story."""
+    user_story = get_check_author(db, req_body)
+    if req_body.base_timeout:
+        user_story.base_timeout = req_body.base_timeout
+    if req_body.k_timeout:
+        user_story.k_timeout = req_body.k_timeout
+    db.commit()
+    db.refresh(user_story)
+    return user_story

@@ -18,9 +18,11 @@ def make(
     new_msg = models.Message(
         chapter=user_chapter,
         content_type=req_body.content_type,
+        timeout=user_chapter.story.base_timeout,
     )
     if req_body.message:
         new_msg.message = req_body.message
+
     if req_body.next_message_id:
         req_msg = schemas.GetUserMsg(
             tg_id=req_body.tg_id,
@@ -126,6 +128,8 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
         ).first()
         if old_start_msg:
             old_start_msg.is_start_chapter = False
+    if req_body.timeout:
+        msg.timeout = req_body.timeout
     db.commit()
     db.refresh(msg)
     return msg

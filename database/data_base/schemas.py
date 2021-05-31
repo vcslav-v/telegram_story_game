@@ -35,6 +35,12 @@ class RenameStory(GetUserStory):
     new_name: str
 
 
+class EditStory(GetUserStory):
+    """Edit story model."""
+
+    base_timeout: Optional[int]
+    k_timeout: Optional[int]
+
 class MakeChapter(GetUserStory):
     """Chapter model."""
 
@@ -98,12 +104,15 @@ class MakeMsg(GetUserChapter):
     parrent_message_id: Optional[int]
     is_start_msg: Optional[bool]
 
+
 class EditMsg(GetUserMsg):
     content_type: str
     message: Optional[str]
     chapter_id: int
     next_message_id: Optional[int]
     is_start_msg: Optional[bool]
+    timeout: Optional[int]
+
 
 class AddButton(GetUserMsg):
     """Button model."""

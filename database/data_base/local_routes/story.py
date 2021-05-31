@@ -2,7 +2,7 @@
 import logging
 
 from data_base.db_utils import get_db
-from data_base.schemas import GetStory, GetUserStory, MakeStory, RenameStory
+from data_base.schemas import GetStory, GetUserStory, MakeStory, RenameStory, EditStory
 from data_base.services import story
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -46,6 +46,16 @@ def rename(req_body: RenameStory, db: Session = Depends(get_db)):
     """Rename story."""
     try:
         resp_story = story.rename(db, req_body)
+    except ValueError as val_err:
+        return {'error': val_err.args}
+    return resp_story
+
+
+@router.post('/edit')
+def edit(req_body: EditStory, db: Session = Depends(get_db)):
+    """Edit story."""
+    try:
+        resp_story = story.edit(db, req_body)
     except ValueError as val_err:
         return {'error': val_err.args}
     return resp_story

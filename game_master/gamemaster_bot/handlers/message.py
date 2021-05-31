@@ -125,6 +125,17 @@ def add_direct_link_msg(call):
     _message.get_direct_link(call.from_user.id)
 
 
+@bot.callback_query_handler(
+    func=tools.is_correct_prefix(message.EDIT_TIMEOUT_PREFIX)
+)
+def edit_timeout_msg(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _message = message.Message(
+        user_context.get_context('message_id'),
+        )
+    _message.get_timeout(call.from_user.id)
+
+
 @bot.message_handler(
     content_types=['photo', 'text'],
     func=tools.is_wait_line_for(message.MAKE_PREFIX),
@@ -215,6 +226,24 @@ def wait_line_add_direct_link(msg):
         _message.show(msg.from_user.id)
     else:
         _message.add_direct_link(msg.from_user.id, msg.text)
+
+
+@bot.message_handler(
+    content_types='text',
+    func=tools.is_wait_line_for(message.EDIT_TIMEOUT_PREFIX),
+)
+def wait_line_edit_timeout(msg):
+    user_context = mem.UserContext(msg.from_user.id)
+    user_context.rm_status()
+    _message = message.Message(
+        user_context.get_context('message_id'),
+        )
+    try:
+        int(msg.text)
+    except Exception:
+        _message.show(msg.from_user.id)
+    else:
+        _message.edit_timeout(msg.from_user.id, int(msg.text))
 
 
 @bot.message_handler(

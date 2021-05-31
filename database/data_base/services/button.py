@@ -13,9 +13,12 @@ def add(
 ) -> models.Message:
     """Make and add button to message."""
     msg = message.get_check_user(db, req_body)
+    next_number = len(msg.own_buttons)
+
     new_button = models.Button(
         text=req_body.text,
         parrent_message=msg,
+        number=next_number,
     )
     if req_body.link_to_msg_id:
         req_msg = schemas.GetUserMsg(
@@ -82,6 +85,17 @@ def edit(
         req_msg.msg_id = req_body.link_to_msg_id
         next_msg = message.get_check_user(db, req_msg)
         btn.next_message = next_msg
+    if req_body.move:
+        sorted_btns = sorted(msg.own_buttons, key=lambda x: x.number)
+        if req_body.move > 0 and len(sorted_btns) > btn.number + 1:
+            next_btn = sorted_btns[btn.number + 1]
+            next_btn.number = next_btn.number - 1
+            btn.number = btn.number + 1
+        elif req_body.move < 0 and  btn.number != 0:
+            prev_btn = sorted_btns[btn.number - 1]
+            prev_btn.number = prev_btn.number + 1
+            btn.number = btn.number - 1
+
     db.commit()
     db.refresh(msg)
     return msg

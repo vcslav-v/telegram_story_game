@@ -91,6 +91,18 @@ def edit_btn_msg(call):
 
 
 @bot.callback_query_handler(
+    func=tools.is_correct_prefix(message.MOVE_BUTTON_PREFIX)
+)
+def move_btn(call):
+    params = tools.get_call_back_params(call.data)
+    user_context = mem.UserContext(call.from_user.id)
+    _message = message.Message(
+        user_context.get_context('message_id'),
+        )
+    _message.move_btn(call.from_user.id, params.get('move'), params.get('btn_id'))
+
+
+@bot.callback_query_handler(
     func=tools.is_correct_prefix(message.ADD_BUTTON_LINK_PREFIX)
 )
 def add_btn_link_msg(call):

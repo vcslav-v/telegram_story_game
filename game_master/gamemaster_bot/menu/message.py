@@ -11,6 +11,7 @@ RM_PREFIX = 'rm_msg?'
 ADD_BUTTON_PREFIX = 'add_btn_msg?'
 RM_BUTTON_PREFIX = 'rm_btn_msg?'
 EDIT_BUTTON_PREFIX = 'edit_btn_msg?'
+MOVE_BUTTON_PREFIX = 'move_btn_msg?'
 EDIT_PREFIX = 'edit_msg?'
 ADD_BUTTON_LINK_PREFIX = 'add_btn_link_msg?'
 ADD_DIRECT_LINK_PREFIX = 'add_direct_link_msg?'
@@ -144,6 +145,16 @@ class Message:
                     ('New text', tools.make_call_back(EDIT_BUTTON_PREFIX, {'btn_id': btn['id']})),
                     ('Add link', tools.make_call_back(ADD_BUTTON_LINK_PREFIX, {'btn_id': btn['id']})),
                 ])
+                if btn['number'] < len(self.buttons) - 1:
+                    buttons[-1].append(('Down', tools.make_call_back(MOVE_BUTTON_PREFIX, {
+                        'btn_id': btn['id'],
+                        'move': 1,
+                    })))
+                if btn['number'] > 0:
+                    buttons[-1].append(('Up', tools.make_call_back(MOVE_BUTTON_PREFIX, {
+                        'btn_id': btn['id'],
+                        'move': -1,
+                    })))
             buttons.append(
                 [
                     ('Добавить ответ', tools.make_call_back(ADD_BUTTON_PREFIX)),
@@ -419,3 +430,22 @@ class Message:
             [('Нет', tools.make_call_back(SHOW_PREFIX))],
         ]
         tools.send_menu_msg(tg_id, msg, buttons)
+
+    def move_btn(self, tg_id: int, move: int, btn_id: int):
+        edit_btn_msg_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='edit_button'),
+                json={
+                    'msg_id': self.id,
+                    'tg_id': tg_id,
+                    'button_id': btn_id,
+                    'move': move,
+                },
+            ).text
+        )
+        if edit_btn_msg_resp.get('error'):
+            msg = edit_btn_msg_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.buttons = edit_btn_msg_resp.get('buttons')
+            self.show(tg_id)

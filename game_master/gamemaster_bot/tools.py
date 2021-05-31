@@ -36,7 +36,7 @@ def get_call_back_params(call_data: str):
 
 
 def make_inline_keyboard(buttons_rows: List):
-    markup = InlineKeyboardMarkup()
+    markup = InlineKeyboardMarkup(row_width=8)
     for row in buttons_rows:
         buttons_row = []
         for button in row:

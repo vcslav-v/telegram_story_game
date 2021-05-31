@@ -123,3 +123,4 @@ class EditButton(GetMsgButton):
 
     text: Optional[str]
     link_to_msg_id: Optional[int]
+    move: Optional[int]

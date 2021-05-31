@@ -119,7 +119,6 @@ class Message(Base):
         passive_deletes=True,
         back_populates='messages',
     )
-
     is_start_chapter = Column(Boolean, default=False)
     content_type = Column(Text)
     message = Column(Text)
@@ -149,6 +148,7 @@ class Message(Base):
 
     def to_dict(self):
         """Represent to dict."""
+        btns = [btn.to_dict() for btn in self.own_buttons]
         return {
             'id': self.id,
             'content_type': self.content_type,
@@ -160,7 +160,7 @@ class Message(Base):
             'link': self.link.id if self.link else None,
             'parrent': self.parent_id if self.parent_id else None,
             'from_buttons': self.from_button if self.from_button else None,
-            'buttons': [btn.to_dict() for btn in self.own_buttons],
+            'buttons': sorted(btns, key=lambda x: x['number']),
         }
 
 
@@ -177,10 +177,11 @@ class Button(Base):
         ForeignKey('messages.id'),
         nullable=False,
     )
+    number = Column(Integer)
     parrent_message = relationship(
         'Message',
         back_populates='own_buttons',
-        foreign_keys=[parrent_message_id]
+        foreign_keys=[parrent_message_id],
     )
 
     next_message_id = Column(Integer, ForeignKey('messages.id'))
@@ -195,6 +196,7 @@ class Button(Base):
         return {
             'id': self.id,
             'text': self.text,
+            'number': self.number,
             'parrent_message_id': self.parrent_message_id,
             'next_message_id': (
                 self.next_message_id if self.next_message_id else None

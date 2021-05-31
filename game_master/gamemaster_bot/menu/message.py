@@ -280,6 +280,7 @@ class Message:
     def edit(self, tg_id: int, data: dict, content_type: str):
         req_data = {
             'msg_id': self.id,
+            'chapter_id': self.chapter_id,
             'message': data['message'],
             'content_type': content_type,
             'tg_id': tg_id,

@@ -57,10 +57,10 @@ def rm(req_body: GetUserMsg, db: Session = Depends(get_db)):
 def edit(req_body: EditMsg, db: Session = Depends(get_db)):
     """Make and return new message."""
     try:
-        status = message.edit(db, req_body)
+        msg = message.edit(db, req_body)
     except ValueError as val_err:
         return {'error': val_err.args}
-    return status
+    return msg.to_dict()
 
 
 @router.post('/add_button')

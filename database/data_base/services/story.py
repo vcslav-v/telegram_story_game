@@ -3,6 +3,9 @@ import logging
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from fastapi import UploadFile
+import csv
+from typing import List
 
 from data_base.services import telegram_user
 from data_base import models, schemas
@@ -112,3 +115,56 @@ def edit(
     db.commit()
     db.refresh(user_story)
     return user_story
+
+
+def set_reactions(
+    db: Session,
+    tg_id: int,
+    story_id: int,
+    file_data: UploadFile,
+) -> models.Story:
+    reader = csv.reader(file_data.file.read().decode('utf-8').splitlines())
+
+    reactions: dict = {}
+    headers = []
+    for i, row in enumerate(reader):
+        if i > 9:
+            break
+        if i == 0:
+            headers.extend(row)
+            for header in headers:
+                reactions[header] = []
+        else:
+            for j, header in enumerate(headers):
+                reactions[header].append(row[j])
+
+    req_body = schemas.GetUserStory(
+        story_id=story_id,
+        tg_id=tg_id,
+    )
+    usr_story = get_check_author(db, req_body)
+    for wait_reaction in usr_story.wait_reactions:
+        db.delete(wait_reaction)
+    for reaction, responses in reactions.items():
+        wait_reactinon = models.WaitReaction(
+            name=reaction,
+            story=usr_story,
+        )
+        db.add(wait_reactinon)
+        for response in responses:
+            if response:
+                db.add(models.Reactions(
+                    message=response,
+                    wait_reaction=wait_reactinon,
+                ))
+    db.commit()
+    db.refresh(usr_story)
+    return usr_story
+
+
+def get_reactions(
+    db: Session,
+    req_body: schemas.GetUserStory,
+) -> List[models.WaitReaction]:
+    usr_story = get_check_author(db, req_body)
+    return usr_story.wait_reactions

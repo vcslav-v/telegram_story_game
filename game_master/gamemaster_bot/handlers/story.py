@@ -27,6 +27,23 @@ def rm_story(call):
 
 
 @bot.callback_query_handler(
+    func=tools.is_correct_prefix(story.UPLOAD_REACTIONS_PREFIX)
+)
+def upload_reactions(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _story = story.Story(int(user_context.get_context('story_id')))
+    _story.get_reactions_file(call.from_user.id)
+
+
+@bot.callback_query_handler(
+    func=tools.is_correct_prefix(story.DOWNLOAD_REACTIONS_PREFIX)
+)
+def download_reactions(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _story = story.Story(int(user_context.get_context('story_id')))
+    _story.get_reactions(call.from_user.id)
+
+@bot.callback_query_handler(
     func=tools.is_correct_prefix(story.RENAME_PREFIX)
 )
 def rename_story(call):
@@ -120,3 +137,15 @@ def wait_line_make(message):
     user_context = mem.UserContext(message.from_user.id)
     user_context.rm_status()
     story.make_new_story(message.from_user.id, message.text)
+
+
+@bot.message_handler(
+    content_types='document',
+    func=tools.is_wait_line_for(story.UPLOAD_REACTIONS_PREFIX),
+)
+def wait_line_upload_reactions(message):
+    user_context = mem.UserContext(message.from_user.id)
+    user_context.rm_status()
+    _story = story.Story(user_context.get_context('story_id'))
+    document = bot.get_file(message.document.file_id)
+    _story.set_reaction(message.from_user.id, bot.download_file(document.file_path))

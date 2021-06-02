@@ -11,6 +11,8 @@ SET_K_TIMEOUT = 'set_k_timeout?'
 RENAME_PREFIX = 'rename_story?'
 RM_PREFIX = 'rm_story?'
 SHOW_CHAPTERS_PREFIX = 'show_story_chapters?'
+UPLOAD_REACTIONS_PREFIX = 'upload_reactions_story?'
+DOWNLOAD_REACTIONS_PREFIX = 'download_reactions_story?'
 
 
 def get_name_for_new_story(tg_id: int):
@@ -57,6 +59,7 @@ class Story:
             story_resp.get('chapters'),
             key=lambda chapter: int(chapter.get('number'))
         )
+        self.is_reactions = story_resp.get('is_reactions')
 
     def show(self, tg_id: int):
         msg = self.name
@@ -65,7 +68,10 @@ class Story:
 
         buttons = [
             [('Посмотреть главы', tools.make_call_back(SHOW_CHAPTERS_PREFIX))],
-            [('Переименовать', tools.make_call_back(RENAME_PREFIX))],
+            [
+                ('Переименовать', tools.make_call_back(RENAME_PREFIX)),
+                ('Загрузить реакции', tools.make_call_back(UPLOAD_REACTIONS_PREFIX)),
+            ],
             [
                 (f'Задержка {self.base_timeout}c', tools.make_call_back(SET_BASE_TIMEOUT)),
                 (f'Скорость набора {self.k_timeout} знак/мин', tools.make_call_back(SET_K_TIMEOUT)),
@@ -73,6 +79,8 @@ class Story:
             [('Удалить', tools.make_call_back(RM_PREFIX, {'is_sure': False}))],
             [('Все истории', tools.make_call_back(tg_user.SHOW_STORIES_PREFIX))],
         ]
+        if self.is_reactions:
+            buttons[1].append(('Реакции', tools.make_call_back(DOWNLOAD_REACTIONS_PREFIX)))
         tools.send_menu_msg(tg_id, msg, buttons)
 
     def make_sure_rm(self, tg_id: int):
@@ -209,3 +217,44 @@ class Story:
         user_context = mem.UserContext(tg_id)
         user_context.set_status('wait_line')
         user_context.set_params({'call_to': prefix})
+
+    def get_reactions_file(self, tg_id: int):
+        msg = (
+            'Загрузите .csv первая строка название реакции,'
+            'столбцами варианты, реакция "std" присваивается автоматически'
+        )
+        tools.send_menu_msg(tg_id, msg, exit_menu=True)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': UPLOAD_REACTIONS_PREFIX})
+
+    def set_reaction(self, tg_id: int, document: bytes):
+        files = {'file_data': ('reactions.csv', document, 'document')}
+        payload = {
+            'tg_id': tg_id,
+            'story_id': self.id,
+        }
+        resp = json.loads(requests.post(
+            DB_URL.format(item='story', cmd='set-reactions'),
+            files=files,
+            data=payload,
+        ).text)
+        self.is_reactions = resp.get('is_reactions')
+        self.show(tg_id)
+
+    def get_reactions(self, tg_id: int):
+        reactions_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='story', cmd='get-reactions-list'),
+                json={
+                    'story_id': self.id,
+                    'tg_id': tg_id,
+                },
+            ).text
+        )
+        lines = []
+        for react in reactions_resp['reactions']:
+            lines.append(f'{react["name"]}:')
+            lines.append('{}\n'.format(', '.join(react['messages'])))
+        tools.send_menu_msg(tg_id, '\n'.join(lines), exit_menu=True)
+        self.show(tg_id)

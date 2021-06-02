@@ -106,12 +106,13 @@ class MakeMsg(GetUserChapter):
 
 
 class EditMsg(GetUserMsg):
-    content_type: str
+    content_type: Optional[str]
     message: Optional[str]
     chapter_id: int
     next_message_id: Optional[int]
     is_start_msg: Optional[bool]
     timeout: Optional[int]
+    reaction_id: Optional[int]
 
 
 class AddButton(GetUserMsg):

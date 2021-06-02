@@ -43,7 +43,7 @@
                     <a class="btn btn-info m-1" href="#{{ msg.link }}">Direct link</a>
                 {% endif %}
               <div class="card-footer text-muted">
-                Задержка: {{ msg.timeout}} сек.
+                Задержка: {{ msg.timeout}} сек.{% if  msg.wait_reaction %} Реакция - {{ msg.wait_reaction['name'] }}{% endif %}
               </div>
               </div>
               </div>

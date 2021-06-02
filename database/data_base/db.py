@@ -14,7 +14,12 @@ if environ.get('DB_URL'):
         dbname='postgres',
     )
 else:
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///foo.db'
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://{user}:{password}@{host}/{dbname}'.format(
+        user='postgres',
+        password='mysecretpassword',
+        host='0.0.0.0',
+        dbname='postgres',
+    )
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -47,6 +52,5 @@ logger = logging.getLogger(__name__)
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URI,
-    # connect_args={'check_same_thread': False},
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

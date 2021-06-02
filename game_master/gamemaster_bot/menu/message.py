@@ -16,6 +16,7 @@ MOVE_BUTTON_PREFIX = 'move_btn_msg?'
 EDIT_PREFIX = 'edit_msg?'
 ADD_BUTTON_LINK_PREFIX = 'add_btn_link_msg?'
 ADD_DIRECT_LINK_PREFIX = 'add_direct_link_msg?'
+CHANGE_REACTION_PREFIX = 'change_reaction_msg?'
 
 
 def get_new_msg(
@@ -106,6 +107,7 @@ class Message:
         self.from_buttons = msg_resp.get('from_buttons')
         self.parrent = msg_resp.get('parrent')
         self.buttons = msg_resp.get('buttons')
+        self.wait_reaction = msg_resp.get('wait_reaction')
 
     def show(self, tg_id: int):
         if self.content_type == 'text':
@@ -162,12 +164,6 @@ class Message:
                     ('Добавить ответ', tools.make_call_back(ADD_BUTTON_PREFIX)),
                 ]
             )
-        buttons.append(
-            [
-                ('Редактировать', tools.make_call_back(EDIT_PREFIX)),
-                (f'Задержка - {self.timeout}с.', tools.make_call_back(EDIT_TIMEOUT_PREFIX)),
-            ]
-        )
         direct_msg_buttons = []
         if self.parrent:
             direct_msg_buttons.append(('Prev direct msg', tools.make_call_back(
@@ -195,7 +191,6 @@ class Message:
                     }))
                 )
 
-
         buttons.append(direct_msg_buttons)
         back_from_buttons = []
         if self.from_buttons:
@@ -205,9 +200,14 @@ class Message:
                     tools.make_call_back(SHOW_PREFIX, {'msg_id': from_btn['parrent_message_id']}),
                 ))
         buttons.append(back_from_buttons)
-        buttons.append([('Удалить', tools.make_call_back(RM_PREFIX))])
+        buttons.append(
+            [
+                ('Редактировать', tools.make_call_back(EDIT_PREFIX)),
+                (f'Задержка - {self.timeout}с.', tools.make_call_back(EDIT_TIMEOUT_PREFIX)),
+                (f'Реакция - {self.wait_reaction.get("name")}', tools.make_call_back(CHANGE_REACTION_PREFIX)),
+            ]
+        )
         buttons.append([
-            ('К главе', tools.make_call_back(chapter.SHOW_PREFIX)),
             (
                 'Все сообщения',
                 None,
@@ -217,7 +217,10 @@ class Message:
                 )
             ),
         ])
-
+        buttons.append([
+            ('Удалить', tools.make_call_back(RM_PREFIX)),
+            ('К главе', tools.make_call_back(chapter.SHOW_PREFIX)),
+        ])
         tools.send_menu_msg(tg_id, data, buttons, content_type=self.content_type)
 
     def get_new_msg(self, tg_id: int):
@@ -419,6 +422,44 @@ class Message:
         user_context = mem.UserContext(tg_id)
         user_context.set_status('wait_line')
         user_context.set_params({'call_to': ADD_DIRECT_LINK_PREFIX})
+
+    def change_reaction(self, tg_id: int, reaction_id: int):
+        if reaction_id:
+            req_data = {
+                'msg_id': self.id,
+                'chapter_id': self.chapter_id,
+                'reaction_id': reaction_id,
+                'tg_id': tg_id,
+            }
+            edit_msg_resp = json.loads(
+                requests.post(
+                    DB_URL.format(item='message', cmd='edit'),
+                    json=req_data,
+                ).text
+            )
+            if edit_msg_resp.get('error'):
+                msg = edit_msg_resp.get('error')
+                tools.send_menu_msg(tg_id, msg)
+            else:
+                self.wait_reaction = edit_msg_resp.get('wait_reaction')
+                self.show(tg_id)
+        else:
+            msg = 'Выберите реакцию:'
+            story_reactions = json.loads(
+                requests.post(
+                    DB_URL.format(item='story', cmd='get-reactions'),
+                    json={
+                        'story_id': self.story_id,
+                        'tg_id': tg_id,
+                    },
+                ).text)
+            buttons = []                
+            for reaction in story_reactions['reactions']:
+                buttons.append([(reaction.get('name'), tools.make_call_back(CHANGE_REACTION_PREFIX, {
+                            'reaction_id': reaction.get('id'),
+                        }))])
+            buttons.append([('Назад', tools.make_call_back(SHOW_PREFIX))])          
+            tools.send_menu_msg(tg_id, msg, buttons)
 
     def add_link_btn(self, tg_id: int, next_msg_id: str, btn_id: int):
         edit_btn_msg_resp = json.loads(

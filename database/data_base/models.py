@@ -3,6 +3,7 @@ from sqlalchemy import Column, ForeignKey, Integer, Text, Boolean, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import hashlib
+import random
 
 Base = declarative_base()
 
@@ -46,6 +47,12 @@ class Story(Base):
         cascade='delete-orphan,delete',
     )
 
+    wait_reactions = relationship(
+        'WaitReaction',
+        back_populates='story',
+        cascade='delete-orphan,delete'
+    )
+
     def to_dict(self):
         """Represent to dict."""
         return {
@@ -54,6 +61,7 @@ class Story(Base):
             'base_timeout': self.base_timeout,
             'k_timeout': self.k_timeout,
             'author_id': self.author_id,
+            'is_reactions': True if self.wait_reactions else False,
             'chapters': [chapter.to_dict() for chapter in self.chapters],
         }
 
@@ -149,6 +157,9 @@ class Message(Base):
         foreign_keys='[Button.next_message_id]',
     )
 
+    wait_reaction_id = Column(Integer, ForeignKey('wait_reactions.id'))
+    wait_reaction = relationship('WaitReaction')
+
     def to_dict(self):
         """Represent to dict."""
         btns = [btn.to_dict() for btn in self.own_buttons]
@@ -165,6 +176,7 @@ class Message(Base):
             'parrent': self.parent_id if self.parent_id else None,
             'from_buttons': self.from_button if self.from_button else None,
             'buttons': sorted(btns, key=lambda x: x['number']),
+            'wait_reaction': self.wait_reaction.to_dict() if self.wait_reaction else {},
         }
 
 
@@ -228,3 +240,56 @@ class Media(Base):
 
     def make_uid(self):
         self.uid = hashlib.sha224(bytes(f'{self.id}{self.parrent_message.id}', 'utf-8')).hexdigest()
+
+
+class WaitReaction(Base):
+    __tablename__ = 'wait_reactions'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(Text)
+    reactions = relationship(
+        'Reactions',
+        back_populates='wait_reaction',
+        cascade='delete-orphan,delete',
+    )
+
+    story_id = Column(
+        Integer,
+        ForeignKey('stories.id'),
+        nullable=False,
+    )
+    story = relationship(
+        'Story',
+        back_populates='wait_reactions',
+        passive_deletes=True,
+    )
+
+    messages = relationship('Message', back_populates='wait_reaction')
+
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'id': self.id,
+        }
+    
+    def full_to_dict(self):
+        return {
+            'name': self.name,
+            'messages': [msg.message for msg in self.reactions] if self.reactions else [],
+        }
+
+
+class Reactions(Base):
+    __tablename__ = 'reactions'
+
+    id = Column(Integer, primary_key=True)
+    message = Column(Text)
+    wait_reaction_id = Column(
+        Integer,
+        ForeignKey('wait_reactions.id'),
+    )
+    wait_reaction = relationship(
+        'WaitReaction',
+        back_populates='reactions',
+        passive_deletes=True,
+    )

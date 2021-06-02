@@ -20,6 +20,12 @@ def make(
         content_type=req_body.content_type,
         timeout=user_chapter.story.base_timeout,
     )
+    reaction = db.query(models.WaitReaction).filter_by(
+        story_id=user_chapter.story_id,
+        name='std',
+    ).first()
+    if reaction:
+        new_msg.wait_reaction = reaction
     if req_body.message:
         new_msg.message = req_body.message
 
@@ -110,7 +116,8 @@ def rm(db: Session, req_body: schemas.GetUserMsg) -> dict:
 def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
     """Edit text message by id."""
     msg = get_check_user(db, req_body)
-    msg.content_type = req_body.content_type
+    if req_body.content_type:
+        msg.content_type = req_body.content_type
     if req_body.message:
         msg.message = req_body.message
     if req_body.next_message_id:
@@ -130,6 +137,10 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
             old_start_msg.is_start_chapter = False
     if req_body.timeout:
         msg.timeout = req_body.timeout
+    if req_body.reaction_id:
+        reaction = db.query(models.WaitReaction).filter_by(id=req_body.reaction_id).first()
+        if reaction and reaction.story.author.telegram_id == req_body.tg_id:
+            msg.wait_reaction = reaction
     db.commit()
     db.refresh(msg)
     return msg

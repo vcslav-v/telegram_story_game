@@ -6,3 +6,4 @@ __pycache__
 *.log
 *.db
 vars.yml
+database/data_base/services/story.py

@@ -61,8 +61,8 @@ def make_new_msg(tg_id: int, data: dict, content_type: str):
                 json=req_data,
             ).text
         )
-    if content_type == 'photo':
-        files = {'file_data': (data['name'], data['photo'], data['content_type'])}
+    if content_type in ['photo', 'voice', 'video_note']:
+        files = {'file_data': (data['name'], data['media'], data['content_type'])}
         payload = {
             'tg_id': tg_id,
             'message_id': new_msg_resp.get('id'),
@@ -114,16 +114,16 @@ class Message:
     def show(self, tg_id: int):
         if self.content_type == 'text':
             data = self.message
-        elif self.content_type == 'photo':
+        elif self.content_type in ['photo', 'voice', 'video_note']:
             data = {}
-            photo = requests.get(
+            media = requests.get(
                 DB_URL.format(
                     item='media',
                     cmd='get/{item_id}',
                 ),
                 params={'item_id': hashlib.sha224(bytes(f'{self.media["id"]}{self.id}', 'utf-8')).hexdigest()}
             ).content
-            data['photo'] = photo
+            data['media'] = media
             data['caption'] = self.message
         user_context = mem.UserContext(tg_id)
         user_context.set_status('in_menu')
@@ -287,6 +287,17 @@ class Message:
             self.show(tg_id)
 
     def edit(self, tg_id: int, data: dict, content_type: str):
+        if content_type in ['photo', 'voice', 'video_note']:
+            files = {'file_data': (data['name'], data['media'], data['content_type'])}
+            payload = {
+                'tg_id': tg_id,
+                'message_id': self.id,
+            }
+            requests.post(
+                DB_URL.format(item='media', cmd='make'),
+                files=files,
+                data=payload,
+            ).text
         req_data = {
             'msg_id': self.id,
             'chapter_id': self.chapter_id,
@@ -301,23 +312,13 @@ class Message:
             ).text
         )
 
-        if content_type == 'photo':
-            files = {'file_data': (data['name'], data['photo'], data['content_type'])}
-            payload = {
-                'tg_id': tg_id,
-                'message_id': self.id,
-            }
-            requests.post(
-                DB_URL.format(item='media', cmd='make'),
-                files=files,
-                data=payload,
-            ).text
-
         if edit_msg_resp.get('error'):
             msg = edit_msg_resp.get('error')
             tools.send_menu_msg(tg_id, msg)
         else:
-            self.message = data['message']
+            self.message = edit_msg_resp.get('message')
+            self.content_type = edit_msg_resp.get('content_type')
+            self.media = edit_msg_resp.get('media')
             self.show(tg_id)
 
     def edit_timeout(self, tg_id: int, timeout: int):

@@ -31,6 +31,20 @@
                   <img class="card-img-top{% if not msg.message %} mb-2{% endif %} mx-auto" src="data:image/jpeg;base64,{{ msg.media }}">
                 </div>
                 {% endif %}
+                {% if  msg.content_type == 'voice' %}
+                <div class="d-flex justify-content-center">
+                  <audio controls>
+                    <source  src="data:audio/ogg;base64,{{ msg.media }}"/>
+                  </audio>
+                </div>
+                {% endif %}
+                {% if  msg.content_type == 'video_note' %}
+                <div class="d-flex justify-content-center">
+                  <video controls>
+                    <source  src="data:video/mp4;base64,{{ msg.media }}"/>
+                  </video>
+                </div>
+                {% endif %}
                 {% if msg.message %}
                   <p class="card-text m-2">{{ msg.message }}</p>
                 {% endif %}

@@ -116,10 +116,9 @@ def rm(db: Session, req_body: schemas.GetUserMsg) -> dict:
 def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
     """Edit text message by id."""
     msg = get_check_user(db, req_body)
+    msg.message = req_body.message
     if req_body.content_type:
         msg.content_type = req_body.content_type
-    if req_body.message:
-        msg.message = req_body.message
     if req_body.referal_block:
         msg.referal_block = req_body.referal_block
     if req_body.next_message_id:

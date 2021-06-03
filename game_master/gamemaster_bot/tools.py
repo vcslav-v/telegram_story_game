@@ -67,7 +67,15 @@ def send_menu_msg(
         )
     elif content_type == 'photo':
         msg_info = bot.send_photo(
-            tg_id, data['photo'], caption=data['caption'], reply_markup=make_inline_keyboard(buttons)
+            tg_id, data['media'], caption=data['caption'], reply_markup=make_inline_keyboard(buttons)
+        )
+    elif content_type == 'voice':
+        msg_info = bot.send_voice(
+            tg_id, data['media'], caption=data['caption'], reply_markup=make_inline_keyboard(buttons)
+        )
+    elif content_type == 'video_note':
+        msg_info = bot.send_video_note(
+            tg_id, data['media'], reply_markup=make_inline_keyboard(buttons)
         )
 
     user_context.set_status('in_menu')

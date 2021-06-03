@@ -160,7 +160,7 @@ def edit_timeout_msg(call):
 
 
 @bot.message_handler(
-    content_types=['photo', 'text'],
+    content_types=['photo', 'text', 'voice', 'video_note'],
     func=tools.is_wait_line_for(message.MAKE_PREFIX),
 )
 def wait_line_make(msg):
@@ -169,17 +169,26 @@ def wait_line_make(msg):
     data = {}
     if msg.content_type == 'text':
         data['message'] = msg.text
-    elif msg.content_type == 'photo':
-        photo = bot.get_file(sorted(msg.photo, key=lambda item: item.width)[-1].file_id)
-        data['name'] = os.path.basename(photo.file_path)
-        data['content_type'] = f'image/{data["name"].split(".")[-1]}'
-        data['photo'] = bot.download_file(photo.file_path)
+    elif msg.content_type in ['photo', 'voice', 'video_note']:
+        if msg.content_type == 'photo':
+            media_file_id = sorted(msg.photo, key=lambda item: item.width)[-1].file_id
+            content_type = 'image'
+        elif msg.content_type == 'voice':
+            media_file_id = msg.voice.file_id
+            content_type = 'video'
+        elif msg.content_type == 'video_note':
+            media_file_id = msg.video_note.file_id
+            content_type = 'video'
+        media_data = bot.get_file(media_file_id)
+        data['name'] = os.path.basename(media_data.file_path)
+        data['content_type'] = f'{content_type}/{data["name"].split(".")[-1]}'
+        data['media'] = bot.download_file(media_data.file_path)
         data['message'] = msg.caption
     message.make_new_msg(msg.from_user.id, data, msg.content_type)
 
 
 @bot.message_handler(
-    content_types=['photo', 'text'],
+    content_types=['photo', 'text', 'voice', 'video_note'],
     func=tools.is_wait_line_for(message.EDIT_PREFIX),
 )
 def wait_line_edit(msg):
@@ -191,11 +200,20 @@ def wait_line_edit(msg):
     data = {}
     if msg.content_type == 'text':
         data['message'] = msg.text
-    elif msg.content_type == 'photo':
-        photo = bot.get_file(sorted(msg.photo, key=lambda item: item.width)[-1].file_id)
-        data['name'] = os.path.basename(photo.file_path)
-        data['content_type'] = f'image/{data["name"].split(".")[-1]}'
-        data['photo'] = bot.download_file(photo.file_path)
+    elif msg.content_type in ['photo', 'voice', 'video_note']:
+        if msg.content_type == 'photo':
+            media_file_id = sorted(msg.photo, key=lambda item: item.width)[-1].file_id
+            content_type = 'image'
+        elif msg.content_type == 'voice':
+            media_file_id = msg.voice.file_id
+            content_type = 'video'
+        elif msg.content_type == 'video_note':
+            media_file_id = msg.video_note.file_id
+            content_type = 'video'
+        media_data = bot.get_file(media_file_id)
+        data['name'] = os.path.basename(media_data.file_path)
+        data['content_type'] = f'{content_type}/{data["name"].split(".")[-1]}'
+        data['media'] = bot.download_file(media_data.file_path)
         data['message'] = msg.caption
     _message.edit(msg.from_user.id, data, msg.content_type)
 

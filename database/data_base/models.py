@@ -160,6 +160,8 @@ class Message(Base):
     wait_reaction_id = Column(Integer, ForeignKey('wait_reactions.id'))
     wait_reaction = relationship('WaitReaction')
 
+    referal_block = Column(Integer, default=0)
+
     def to_dict(self):
         """Represent to dict."""
         btns = [btn.to_dict() for btn in self.own_buttons]
@@ -177,6 +179,7 @@ class Message(Base):
             'from_buttons': self.from_button if self.from_button else None,
             'buttons': sorted(btns, key=lambda x: x['number']),
             'wait_reaction': self.wait_reaction.to_dict() if self.wait_reaction else {},
+            'referal_block': self.referal_block,
         }
 
 

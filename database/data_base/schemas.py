@@ -113,6 +113,7 @@ class EditMsg(GetUserMsg):
     is_start_msg: Optional[bool]
     timeout: Optional[int]
     reaction_id: Optional[int]
+    referal_block: Optional[int]
 
 
 class AddButton(GetUserMsg):

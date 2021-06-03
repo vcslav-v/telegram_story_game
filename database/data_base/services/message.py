@@ -120,6 +120,8 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
         msg.content_type = req_body.content_type
     if req_body.message:
         msg.message = req_body.message
+    if req_body.referal_block:
+        msg.referal_block = req_body.referal_block
     if req_body.next_message_id:
         req_msg = schemas.GetUserMsg(
             msg_id=req_body.next_message_id,

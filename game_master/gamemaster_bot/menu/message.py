@@ -17,6 +17,7 @@ EDIT_PREFIX = 'edit_msg?'
 ADD_BUTTON_LINK_PREFIX = 'add_btn_link_msg?'
 ADD_DIRECT_LINK_PREFIX = 'add_direct_link_msg?'
 CHANGE_REACTION_PREFIX = 'change_reaction_msg?'
+EDIT_REFERAL_BLOCK_PREFIX = 'edit_referal_block_msg?'
 
 
 def get_new_msg(
@@ -108,6 +109,7 @@ class Message:
         self.parrent = msg_resp.get('parrent')
         self.buttons = msg_resp.get('buttons')
         self.wait_reaction = msg_resp.get('wait_reaction')
+        self.referal_block = msg_resp.get('referal_block')
 
     def show(self, tg_id: int):
         if self.content_type == 'text':
@@ -124,7 +126,7 @@ class Message:
             data['photo'] = photo
             data['caption'] = self.message
         user_context = mem.UserContext(tg_id)
-        user_context.rm_status()
+        user_context.set_status('in_menu')
         user_context.update_context('message_id', str(self.id))
         buttons = []
         if not self.link:
@@ -166,7 +168,7 @@ class Message:
             )
         direct_msg_buttons = []
         if self.parrent:
-            direct_msg_buttons.append(('Prev direct msg', tools.make_call_back(
+            direct_msg_buttons.append(('<=', tools.make_call_back(
                 SHOW_PREFIX,
                 {'msg_id': self.parrent},
             )))
@@ -179,7 +181,7 @@ class Message:
                 )
             if self.link:
                 direct_msg_buttons.append(
-                    ('Next direct msg', tools.make_call_back(
+                    ('=>', tools.make_call_back(
                         SHOW_PREFIX,
                         {'msg_id': self.link},
                     ))
@@ -196,7 +198,7 @@ class Message:
         if self.from_buttons:
             for from_btn in self.from_buttons:
                 back_from_buttons.append((
-                    f'<= {from_btn["text"][:8]}',
+                    f'<= {from_btn["text"][:15]}',
                     tools.make_call_back(SHOW_PREFIX, {'msg_id': from_btn['parrent_message_id']}),
                 ))
         buttons.append(back_from_buttons)
@@ -208,6 +210,7 @@ class Message:
             ]
         )
         buttons.append([
+            (f'Referal block - {self.referal_block}', tools.make_call_back(EDIT_REFERAL_BLOCK_PREFIX)),
             (
                 'Все сообщения',
                 None,
@@ -507,6 +510,36 @@ class Message:
             [('Нет', tools.make_call_back(SHOW_PREFIX))],
         ]
         tools.send_menu_msg(tg_id, msg, buttons)
+
+    def get_line(self, tg_id: int, text: str, prefix: str):
+        buttons = [
+            [('Назад', tools.make_call_back(SHOW_PREFIX))],
+        ]
+        tools.send_menu_msg(tg_id, text, buttons)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': prefix})
+
+    def edit_referal_block(self, tg_id: int, num_referals: int):
+        req_data = {
+            'msg_id': self.id,
+            'chapter_id': self.chapter_id,
+            'referal_block': num_referals,
+            'tg_id': tg_id,
+        }
+        edit_msg_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='message', cmd='edit'),
+                json=req_data,
+            ).text
+        )
+
+        if edit_msg_resp.get('error'):
+            msg = edit_msg_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.referal_block = edit_msg_resp['referal_block']
+            self.show(tg_id)
 
     def move_btn(self, tg_id: int, move: int, btn_id: int):
         edit_btn_msg_resp = json.loads(

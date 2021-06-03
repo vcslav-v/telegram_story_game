@@ -56,6 +56,17 @@ def edit_msg(call):
 
 
 @bot.callback_query_handler(
+    func=tools.is_correct_prefix(message.EDIT_REFERAL_BLOCK_PREFIX)
+)
+def edit_referal_block_msg(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _message = message.Message(
+        user_context.get_context('message_id'),
+        )
+    _message.get_line(call.from_user.id, 'Необходимое кол-во рефералов:', message.EDIT_REFERAL_BLOCK_PREFIX)
+
+
+@bot.callback_query_handler(
     func=tools.is_correct_prefix(message.ADD_BUTTON_PREFIX)
 )
 def add_btn_msg(call):
@@ -251,7 +262,7 @@ def wait_line_edit_timeout(msg):
         user_context.get_context('message_id'),
         )
     try:
-        int(msg.text)
+        assert(int(msg.text) >= 0)
     except Exception:
         _message.show(msg.from_user.id)
     else:
@@ -269,3 +280,21 @@ def wait_line_add_btn(msg):
         user_context.get_context('message_id'),
         )
     _message.add_button(msg.from_user.id, msg.text)
+
+
+@bot.message_handler(
+    content_types='text',
+    func=tools.is_wait_line_for(message.EDIT_REFERAL_BLOCK_PREFIX),
+)
+def wait_line_edit_referal_block(msg):
+    user_context = mem.UserContext(msg.from_user.id)
+    user_context.rm_status()
+    _message = message.Message(
+        user_context.get_context('message_id'),
+        )
+    try:
+        assert(int(msg.text) >= 0)
+    except Exception:
+        _message.show(msg.from_user.id)
+    else:
+        _message.edit_referal_block(msg.from_user.id, int(msg.text))

@@ -58,7 +58,7 @@ def send_menu_msg(
     content_type='text'
 ):
     user_context = UserContext(tg_id)
-    if user_context.get_status() == 'in_menu':
+    if user_context.get_status() == 'in_menu' and user_context.get_context('active_menu_msg_id'):
         bot.delete_message(tg_id, user_context.get_context('active_menu_msg_id'))
 
     if content_type == 'text':

@@ -43,7 +43,7 @@
                     <a class="btn btn-info m-1" href="#{{ msg.link }}">Direct link</a>
                 {% endif %}
               <div class="card-footer text-muted">
-                Задержка: {{ msg.timeout}} сек.{% if  msg.wait_reaction %} Реакция - {{ msg.wait_reaction['name'] }}{% endif %}
+                Задержка: {{ msg.timeout}} сек.{% if  msg.wait_reaction %} Реакция - {{ msg.wait_reaction['name'] }}{% endif %} {% if  msg.referal_block %} Referal_block - {{ msg.referal_block }}{% endif %}
               </div>
               </div>
               </div>

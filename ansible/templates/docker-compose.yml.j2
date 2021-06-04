@@ -28,7 +28,7 @@ services:
       depends_on:
         - migrations
       networks:
-        - intranet
+        intranet:
           aliases:
             - {{ db_api_name }}
     

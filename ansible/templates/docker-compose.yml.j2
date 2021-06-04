@@ -29,6 +29,8 @@ services:
         - migrations
       networks:
         - intranet
+          aliases:
+            - {{ db_api_name }}
     
     migrations:
       image: {{ db_api_image }}

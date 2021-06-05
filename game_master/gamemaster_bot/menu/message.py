@@ -103,7 +103,7 @@ class Message:
         self.is_start_chapter = msg_resp.get('is_start_chapter')
         self.chapter_id = int(msg_resp.get('chapter_id'))
         self.message = msg_resp.get('message')
-        self.media = msg_resp.get('media')
+        self.media_id = msg_resp.get('media_id')
         self.link = msg_resp.get('link')
         self.from_buttons = msg_resp.get('from_buttons')
         self.parrent = msg_resp.get('parrent')
@@ -121,7 +121,7 @@ class Message:
                     item='media',
                     cmd='get/{item_id}',
                 ),
-                params={'item_id': hashlib.sha224(bytes(f'{self.media["id"]}{self.id}', 'utf-8')).hexdigest()}
+                params={'item_id': self.media_id}
             ).content
             data['media'] = media
             data['caption'] = self.message
@@ -318,7 +318,7 @@ class Message:
         else:
             self.message = edit_msg_resp.get('message')
             self.content_type = edit_msg_resp.get('content_type')
-            self.media = edit_msg_resp.get('media')
+            self.media_id = edit_msg_resp.get('media')
             self.show(tg_id)
 
     def edit_timeout(self, tg_id: int, timeout: int):

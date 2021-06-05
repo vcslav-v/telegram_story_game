@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import hashlib
 import random
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -53,6 +54,9 @@ class Story(Base):
         cascade='delete-orphan,delete'
     )
 
+    def make_uid(self):
+        self.uid = hashlib.sha224(bytes(f'{datetime.timestamp(datetime.utcnow())}{self.id}', 'utf-8')).hexdigest() 
+
     def to_dict(self):
         """Represent to dict."""
         return {
@@ -64,6 +68,7 @@ class Story(Base):
             'is_reactions': True if self.wait_reactions else False,
             'chapters': [chapter.to_dict() for chapter in self.chapters],
         }
+    
 
 
 class Chapter(Base):

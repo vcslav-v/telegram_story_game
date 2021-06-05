@@ -27,7 +27,7 @@ def make(
     user = telegram_user.get_or_make_if_new(db, req_body)
 
     new_story = models.Story(name=req_body.story_name, author=user)
-
+    new_story.make_uid()
     db.add(new_story)
     try:
         db.commit()
@@ -54,10 +54,50 @@ def get(
         id=req_body.story_id,
     ).first()
     if story:
-        return story
+        if story.uid:
+            return story
+        else:
+            story.make_uid()
+            db.commit()
+            return story
     err_msg = 'Story {story_id} is not exist'.format(
         story_id=req_body.story_id,
     )
+    logger.error(err_msg)
+    raise ValueError(err_msg)
+
+
+def get_first_msg(
+    db: Session,
+    story_uid: str,
+) -> models.Message:
+    story = db.query(models.Story).filter_by(
+        uid=story_uid,
+    ).first()
+    if story:
+        first_chapter = db.query(models.Chapter).filter_by(
+            story=story,
+            number=0,
+        ).first()
+        if first_chapter:
+            first_message = db.query(models.Message).filter_by(
+                chapter=first_chapter,
+                is_start_chapter=True,
+            ).first()
+            if first_message:
+                return first_message
+            else:
+                err_msg = 'Story {story_uid} has not messages'.format(
+                    story_uid=story_uid,
+                )
+        else:
+            err_msg = 'Story {story_uid} has not chapters'.format(
+                story_uid=story_uid,
+            )
+    else:
+        err_msg = 'Story {story_uid} is not exist'.format(
+            story_uid=story_uid,
+        )
     logger.error(err_msg)
     raise ValueError(err_msg)
 

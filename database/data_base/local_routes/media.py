@@ -25,14 +25,14 @@ def make(
     return {'status': 'ok'}
 
 
-@router.get('/get/{item_uid}')
+@router.get('/get/{id_media}')
 def get(
-    item_id: str,
+    id_media: str,
     db: Session = Depends(get_db),
 ):
     """Get media."""
     try:
-        msg_media = media.get(db, item_id)
+        msg_media = media.get(db, int(id_media))
     except ValueError as val_err:
         return {'error': val_err.args}
     return Response(content=msg_media.file_data, media_type=msg_media.content_type)

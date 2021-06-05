@@ -45,9 +45,8 @@ def chapter_map(chapter_hash):
                     next_chapter_msgs[-1]['media'] = base64.b64encode(requests.get(
                         DB_URL.format(
                             item='media',
-                            cmd='get/{item_id}',
+                            cmd=f'get/{next_chapter_msgs[-1]["media_id"]}',
                         ),
-                        params={'item_id': hashlib.sha224(bytes(f'{next_chapter_msgs[-1]["media"]["id"]}{next_chapter_msgs[-1]["id"]}', 'utf-8')).hexdigest()}
                     ).content).decode('utf-8')
 
         next_msgs = []

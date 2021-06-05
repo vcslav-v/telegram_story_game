@@ -37,12 +37,11 @@ def make(
 
 def get(
     db: Session,
-    id_media: str
+    id_media: int
 ):
-    _id_media = int(id_media)
-    msg_media = db.query(models.Media).filter_by(id=_id_media).first()
+    msg_media = db.query(models.Media).filter_by(id=id_media).first()
     if msg_media:
         return msg_media
-    err_msg = f'There is not media id - {_id_media}'
+    err_msg = f'There is not media id - {id_media}'
     logger.error(err_msg)
     raise ValueError(err_msg)

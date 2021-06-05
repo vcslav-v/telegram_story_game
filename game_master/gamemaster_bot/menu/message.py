@@ -119,9 +119,8 @@ class Message:
             media = requests.get(
                 DB_URL.format(
                     item='media',
-                    cmd='get/{item_id}',
+                    cmd=f'get/{self.media_id}',
                 ),
-                params={'item_id': self.media_id}
             ).content
             data['media'] = media
             data['caption'] = self.message

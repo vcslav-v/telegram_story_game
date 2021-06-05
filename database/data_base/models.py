@@ -36,6 +36,7 @@ class Story(Base):
     id = Column(Integer, primary_key=True)
 
     name = Column(Text, unique=True)
+    uid = Column(Text, unique=True)
     author_id = Column(
         Integer, ForeignKey('telegram_users.id'), nullable=False,
     )
@@ -177,7 +178,7 @@ class Message(Base):
             'chapter_id': self.chapter_id,
             'timeout': self.timeout,
             'message': self.message,
-            'media': {'id': self.media.id} if self.media else None,
+            'media_id': self.media.id if self.media else None,
             'is_start_chapter': self.is_start_chapter,
             'link': self.link.id if self.link else None,
             'parrent': self.parent_id if self.parent_id else None,

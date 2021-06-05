@@ -65,9 +65,8 @@ def chapter_map(chapter_hash):
                 msg['media'] = base64.b64encode(requests.get(
                     DB_URL.format(
                         item='media',
-                        cmd='get/{item_id}',
+                        cmd=f'get/{msg["media_id"]}',
                     ),
-                    params={'item_id': hashlib.sha224(bytes(f'{msg["media"]["id"]}{msg["id"]}', 'utf-8')).hexdigest()}
                 ).content).decode('utf-8')
             messages.append({'data': msg, 'is_attach': attach})
         if len(next_msgs) == 0:

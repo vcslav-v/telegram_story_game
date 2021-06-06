@@ -5,6 +5,7 @@ from gamemaster_bot.menu import tg_user, chapter
 import requests
 
 SHOW_PREFIX = 'show_story?'
+SHOW_UID_PREFIX = 'show_uid_story?'
 MAKE_PREFIX = 'make_story?'
 SET_BASE_TIMEOUT = 'set_base_timeout?'
 SET_K_TIMEOUT = 'set_k_timeout?'
@@ -51,6 +52,7 @@ class Story:
             ).text
         )
         self.id = int(story_resp.get('id'))
+        self.uid = story_resp.get('uid')
         self.name = story_resp.get('name')
         self.base_timeout = story_resp.get('base_timeout')
         self.k_timeout = story_resp.get('k_timeout')
@@ -77,7 +79,10 @@ class Story:
                 (f'Скорость набора {self.k_timeout} знак/мин', tools.make_call_back(SET_K_TIMEOUT)),
             ],
             [('Удалить', tools.make_call_back(RM_PREFIX, {'is_sure': False}))],
-            [('Все истории', tools.make_call_back(tg_user.SHOW_STORIES_PREFIX))],
+            [
+                ('Все истории', tools.make_call_back(tg_user.SHOW_STORIES_PREFIX)),
+                ('Подключить бота', tools.make_call_back(SHOW_UID_PREFIX)),
+            ],
         ]
         if self.is_reactions:
             buttons[1].append(('Реакции', tools.make_call_back(DOWNLOAD_REACTIONS_PREFIX)))
@@ -117,6 +122,10 @@ class Story:
         user_context = mem.UserContext(tg_id)
         user_context.set_status('wait_line')
         user_context.set_params({'call_to': RENAME_PREFIX})
+
+    def show_uid(self, tg_id: int):
+        tools.send_menu_msg(tg_id, f'`{self.uid}`', exit_menu=True)
+        self.show(tg_id)
 
     def rename(self, tg_id: int, new_name: str):
         renamed_story_resp = json.loads(

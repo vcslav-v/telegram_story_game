@@ -7,7 +7,6 @@ import json
 
 MAKE_PREFIX = 'make_msg?'
 SHOW_PREFIX = 'show_msg?'
-SHOW_UID_PREFIX = 'show_uid?'
 RM_PREFIX = 'rm_msg?'
 EDIT_TIMEOUT_PREFIX = 'edit_timeout?'
 ADD_BUTTON_PREFIX = 'add_btn_msg?'
@@ -98,7 +97,6 @@ class Message:
             ).text
         )
         self.id = int(msg_resp.get('id'))
-        self.uid = msg_resp.get('uid')
         self.story_id = msg_resp.get('story_id')
         self.content_type = msg_resp.get('content_type')
         self.timeout = msg_resp.get('timeout')
@@ -226,10 +224,6 @@ class Message:
             ('К главе', tools.make_call_back(chapter.SHOW_PREFIX)),
         ])
         tools.send_menu_msg(tg_id, data, buttons, content_type=self.content_type)
-
-    def show_uid(self, tg_id: int):
-        tools.send_menu_msg(tg_id, f'`{self.uid}`', exit_menu=True)
-        self.show(tg_id)
 
     def get_new_msg(self, tg_id: int):
         text = 'Новое сообщение:'

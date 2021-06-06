@@ -27,6 +27,15 @@ def rm_story(call):
 
 
 @bot.callback_query_handler(
+    func=tools.is_correct_prefix(story.SHOW_UID_PREFIX)
+)
+def show_uid_story(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _story = story.Story(user_context.get_context('story_id'))
+    _story.show_uid(call.from_user.id)
+
+
+@bot.callback_query_handler(
     func=tools.is_correct_prefix(story.UPLOAD_REACTIONS_PREFIX)
 )
 def upload_reactions(call):

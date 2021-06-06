@@ -30,15 +30,6 @@ def show_msg(call):
 
 
 @bot.callback_query_handler(
-    func=tools.is_correct_prefix(message.SHOW_UID_PREFIX)
-)
-def show_uid_msg(call):
-    user_context = mem.UserContext(call.from_user.id)
-    _message = message.Message(user_context.get_context('message_id'))
-    _message.show_uid(call.from_user.id)
-
-
-@bot.callback_query_handler(
     func=tools.is_correct_prefix(message.RM_PREFIX)
 )
 def rm_message(call):

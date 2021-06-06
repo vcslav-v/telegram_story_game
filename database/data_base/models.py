@@ -62,6 +62,7 @@ class Story(Base):
         """Represent to dict."""
         return {
             'id': self.id,
+            'uid': self.uid,
             'name': self.name,
             'base_timeout': self.base_timeout,
             'k_timeout': self.k_timeout,

@@ -29,8 +29,6 @@ def make(
         db.add(media)
     media.content_type = file_data.content_type
     media.file_data = file_data.file.read()
-    db.commit()
-    db.refresh(media)
     media.make_uid()
     db.commit()
 
@@ -43,5 +41,19 @@ def get(
     if msg_media:
         return msg_media
     err_msg = f'There is not media id - {id_media}'
+    logger.error(err_msg)
+    raise ValueError(err_msg)
+
+
+def get_by_uid(
+    db: Session,
+    story_uid: str,
+    uid_media: str,
+):
+    story = db.query(models.Story).filter_by(uid=story_uid).first()
+    msg_media = db.query(models.Media).filter_by(uid=uid_media, story=story).first()
+    if msg_media:
+        return msg_media
+    err_msg = f'There is not media id - {uid_media}'
     logger.error(err_msg)
     raise ValueError(err_msg)

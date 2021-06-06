@@ -197,6 +197,7 @@ def set_reactions(
                     message=response,
                     wait_reaction=wait_reactinon,
                 ))
+        wait_reactinon.make_uid()
     db.commit()
     db.refresh(usr_story)
     return usr_story
@@ -208,3 +209,19 @@ def get_reactions(
 ) -> List[models.WaitReaction]:
     usr_story = get_check_author(db, req_body)
     return usr_story.wait_reactions
+
+
+def get_reactions_by_uid(
+    db: Session,
+    story_uid: str,
+    wr_uid: str,
+) -> models.WaitReaction:
+    story = db.query(models.Story).filter_by(uid=story_uid).first()
+    wr = db.query(models.WaitReaction).filter_by(uid=wr_uid, story=story).first()
+    if wr:
+        return wr
+    err_msg = 'Reaction {wr_uid} is not exist'.format(
+        wr_uid=wr_uid,
+    )
+    logger.error(err_msg)
+    raise ValueError(err_msg)

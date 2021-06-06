@@ -70,7 +70,6 @@ class Story(Base):
             'is_reactions': True if self.wait_reactions else False,
             'chapters': [chapter.to_dict() for chapter in self.chapters],
         }
-    
 
 
 class Chapter(Base):
@@ -195,12 +194,13 @@ class Message(Base):
             'id': self.id,
             'content_type': self.content_type,
             'chapter_id': self.chapter_id,
+            'speed_type': self.chapter.story.k_timeout,
             'timeout': self.timeout,
             'message': self.message,
-            'media_id': self.media.id if self.media else None,
+            'media_uid': self.media.uid if self.media else None,
             'link': self.link.id if self.link else None,
             'buttons': sorted(btns, key=lambda x: x['number']),
-            'wait_reaction': self.wait_reaction.full_to_dict() if self.wait_reaction else {},
+            'wait_reaction': self.wait_reaction.uid if self.wait_reaction else {},
             'referal_block': self.referal_block,
         }
 
@@ -264,13 +264,14 @@ class Media(Base):
     )
 
     def make_uid(self):
-        self.uid = hashlib.sha224(bytes(f'{self.id}{self.parrent_message.id}', 'utf-8')).hexdigest()
+        self.uid = hashlib.sha224(bytes(f'{self.file_data}', 'utf-8')).hexdigest()
 
 
 class WaitReaction(Base):
     __tablename__ = 'wait_reactions'
 
     id = Column(Integer, primary_key=True)
+    uid = Column(Text)
     name = Column(Text)
     reactions = relationship(
         'Reactions',
@@ -291,6 +292,10 @@ class WaitReaction(Base):
 
     messages = relationship('Message', back_populates='wait_reaction')
 
+    def make_uid(self):
+        reactions = ''.join([react.message for react in self.reactions])
+        self.uid = hashlib.sha224(bytes(f'{reactions}', 'utf-8')).hexdigest()
+
     def to_dict(self):
         return {
             'name': self.name,
@@ -300,6 +305,7 @@ class WaitReaction(Base):
     def full_to_dict(self):
         return {
             'name': self.name,
+            'uid': self.uid,
             'messages': [msg.message for msg in self.reactions] if self.reactions else [],
         }
 

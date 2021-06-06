@@ -183,14 +183,22 @@ def set_reactions(
         tg_id=tg_id,
     )
     usr_story = get_check_author(db, req_body)
-    for wait_reaction in usr_story.wait_reactions:
-        db.delete(wait_reaction)
+    cur_reaction_names = [wr.name for wr in usr_story.wait_reactions] if usr_story.wait_reactions else []
+    delete_reactions = set(cur_reaction_names) - reactions.keys()
+    for reaction in delete_reactions:
+        wait_reactinon = db.query(models.WaitReaction).filter_by(name=reaction, story=usr_story).first()
+        db.delete(wait_reactinon)
     for reaction, responses in reactions.items():
-        wait_reactinon = models.WaitReaction(
-            name=reaction,
-            story=usr_story,
-        )
-        db.add(wait_reactinon)
+        if reaction in cur_reaction_names:
+            wait_reactinon = db.query(models.WaitReaction).filter_by(name=reaction).first()
+            for react in wait_reactinon.reactions:
+                db.delete(react)
+        else:
+            wait_reactinon = models.WaitReaction(
+                name=reaction,
+                story=usr_story,
+            )
+            db.add(wait_reactinon)
         for response in responses:
             if response:
                 db.add(models.Reactions(
@@ -199,6 +207,15 @@ def set_reactions(
                 ))
         wait_reactinon.make_uid()
     db.commit()
+    std_wait_reactinon = db.query(models.WaitReaction).filter_by(name='std').first()
+    if std_wait_reactinon:
+        empty_reaction_msgs = db.query(models.Message).filter(
+            models.Message.chapter_id.in_([chap.id for chap in usr_story.chapters]),
+            models.Message.wait_reaction == None,
+        ).all()
+        for msg in empty_reaction_msgs:
+            msg.wait_reaction = std_wait_reactinon
+        db.commit()
     db.refresh(usr_story)
     return usr_story
 

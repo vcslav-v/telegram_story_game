@@ -189,6 +189,21 @@ class Message(Base):
             'referal_block': self.referal_block,
         }
 
+    def to_engine_dict(self):
+        btns = [btn.to_dict() for btn in self.own_buttons]
+        return {
+            'id': self.id,
+            'content_type': self.content_type,
+            'chapter_id': self.chapter_id,
+            'timeout': self.timeout,
+            'message': self.message,
+            'media_id': self.media.id if self.media else None,
+            'link': self.link.id if self.link else None,
+            'buttons': sorted(btns, key=lambda x: x['number']),
+            'wait_reaction': self.wait_reaction.full_to_dict() if self.wait_reaction else {},
+            'referal_block': self.referal_block,
+        }
+
 
 class Button(Base):
     """Buttons."""

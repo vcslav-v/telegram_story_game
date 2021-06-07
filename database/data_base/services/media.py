@@ -51,8 +51,8 @@ def get_by_uid(
     uid_media: str,
 ):
     story = db.query(models.Story).filter_by(uid=story_uid).first()
-    msg_media = db.query(models.Media).filter_by(uid=uid_media, story=story).first()
-    if msg_media:
+    msg_media = db.query(models.Media).filter_by(uid=uid_media).first()
+    if msg_media and msg_media.parrent_message.chapter.story == story:
         return msg_media
     err_msg = f'There is not media id - {uid_media}'
     logger.error(err_msg)

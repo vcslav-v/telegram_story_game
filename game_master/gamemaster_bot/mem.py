@@ -1,5 +1,4 @@
 import redis
-from os import environ
 from gamemaster_bot import REDIS
 
 

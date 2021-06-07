@@ -6,7 +6,7 @@ from starlette.responses import Response
 from data_base.db import SessionLocal
 from data_base.routes import routes
 
-app = FastAPI(debug=True)
+app = FastAPI()
 
 
 @app.middleware('http')

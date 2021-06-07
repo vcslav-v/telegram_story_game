@@ -189,18 +189,18 @@ class Message(Base):
         }
 
     def to_engine_dict(self):
-        btns = [btn.to_dict() for btn in self.own_buttons]
+        btns = [btn.to_engine_dict() for btn in self.own_buttons]
         return {
             'id': self.id,
             'content_type': self.content_type,
             'chapter_id': self.chapter_id,
             'speed_type': self.chapter.story.k_timeout,
             'timeout': self.timeout,
-            'message': self.message,
+            'text': self.message,
             'media_uid': self.media.uid if self.media else None,
             'link': self.link.id if self.link else None,
             'buttons': sorted(btns, key=lambda x: x['number']),
-            'wait_reaction': self.wait_reaction.uid if self.wait_reaction else {},
+            'wait_reaction_uid': self.wait_reaction.uid if self.wait_reaction else None,
             'referal_block': self.referal_block,
         }
 
@@ -239,6 +239,15 @@ class Button(Base):
             'text': self.text,
             'number': self.number,
             'parrent_message_id': self.parrent_message_id,
+            'next_message_id': (
+                self.next_message_id if self.next_message_id else None
+            ),
+        }
+
+    def to_engine_dict(self):
+        return {
+            'text': self.text,
+            'number': self.number,
             'next_message_id': (
                 self.next_message_id if self.next_message_id else None
             ),

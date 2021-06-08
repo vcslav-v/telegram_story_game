@@ -113,7 +113,7 @@ class Message:
 
     def show(self, tg_id: int):
         if self.content_type == 'text':
-            data = self.message
+            data = self.message or 'None'
         elif self.content_type in ['photo', 'voice', 'video_note']:
             data = {}
             media = requests.get(

@@ -134,7 +134,7 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
         msg.message = req_body.message
     if req_body.content_type:
         msg.content_type = req_body.content_type
-        if not req_body.message:
+        if not req_body.message and req_body.content_type != 'text':
             msg.message = req_body.message
     if req_body.referal_block:
         msg.referal_block = req_body.referal_block

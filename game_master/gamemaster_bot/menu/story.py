@@ -124,7 +124,7 @@ class Story:
         user_context.set_params({'call_to': RENAME_PREFIX})
 
     def show_uid(self, tg_id: int):
-        tools.send_menu_msg(tg_id, f'`{APP_URL}{self.uid}`', exit_menu=True)
+        tools.send_menu_msg(tg_id, f'`{APP_URL}api/{self.uid}`', exit_menu=True)
         self.show(tg_id)
 
     def rename(self, tg_id: int, new_name: str):

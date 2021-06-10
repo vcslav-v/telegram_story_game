@@ -65,7 +65,6 @@ def send_menu_msg(
         msg_info = bot.send_message(
             tg_id, data,
             reply_markup=make_inline_keyboard(buttons),
-            parse_mode='markdown',
         )
     elif content_type == 'photo':
         msg_info = bot.send_photo(

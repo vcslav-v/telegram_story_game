@@ -72,14 +72,12 @@ def send_menu_msg(
             tg_id, data['media'],
             caption=data['caption'],
             reply_markup=make_inline_keyboard(buttons),
-            parse_mode='markdown',
         )
     elif content_type == 'voice':
         msg_info = bot.send_voice(
             tg_id, data['media'],
             caption=data['caption'],
             reply_markup=make_inline_keyboard(buttons),
-            parse_mode='markdown',
         )
     elif content_type == 'video_note':
         msg_info = bot.send_video_note(

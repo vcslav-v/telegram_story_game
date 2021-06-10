@@ -2,7 +2,7 @@ from gamemaster_bot import bot
 from gamemaster_bot import tools, mem
 from gamemaster_bot.menu import message
 import os
-
+from loguru import logger
 
 @bot.callback_query_handler(
     func=tools.is_correct_prefix(message.MAKE_PREFIX)
@@ -20,6 +20,7 @@ def make_msg(call):
 @bot.callback_query_handler(
     func=tools.is_correct_prefix(message.SHOW_PREFIX)
 )
+@logger.catch
 def show_msg(call):
     user_context = mem.UserContext(call.from_user.id)
     params = tools.get_call_back_params(call.data)

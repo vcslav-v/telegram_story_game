@@ -1,7 +1,7 @@
 from gamemaster_bot import tools, mem, DB_URL, APP_URL
 from gamemaster_bot.menu import chapter
 import hashlib
-
+from loguru import logger
 import requests
 import json
 
@@ -223,6 +223,7 @@ class Message:
             ('Удалить', tools.make_call_back(RM_PREFIX)),
             ('К главе', tools.make_call_back(chapter.SHOW_PREFIX)),
         ])
+        logger.debug(data)
         tools.send_menu_msg(tg_id, data, buttons, content_type=self.content_type)
 
     def get_new_msg(self, tg_id: int):

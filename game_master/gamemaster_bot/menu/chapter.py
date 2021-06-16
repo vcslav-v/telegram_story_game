@@ -11,6 +11,7 @@ RENAME_PREFIX = 'rename_chapter?'
 RM_PREFIX = 'rm_chapter?'
 UP_PREFIX = 'up_chapter?'
 DOWN_PREFIX = 'down_chapter?'
+REF_BLOCK_PREFIX = 'ref_block_chapter?'
 
 
 def get_name_for_new_chapter(tg_id: int):
@@ -86,6 +87,7 @@ class Chapter:
 
         buttons.extend([
             [
+                ('Установить ref-block', tools.make_call_back(REF_BLOCK_PREFIX)),
                 ('Переименовать', tools.make_call_back(RENAME_PREFIX)),
                 ('Удалить', tools.make_call_back(RM_PREFIX, {'is_sure': False})),
             ],
@@ -148,6 +150,31 @@ class Chapter:
         user_context = mem.UserContext(tg_id)
         user_context.set_status('wait_line')
         user_context.set_params({'call_to': RENAME_PREFIX})
+
+    def set_ref_block(self, tg_id: int, ref_block: int):
+        chapter_resp = json.loads(
+            requests.post(
+                DB_URL.format(item='chapter', cmd='set_ref_block'),
+                json={
+                    'story_id': self.story_id,
+                    'tg_id': tg_id,
+                    'chapter_id': self.id,
+                    'ref_block': ref_block,
+                },
+            ).text
+        )
+        if chapter_resp.get('error'):
+            msg = chapter_resp.get('error')
+            tools.send_menu_msg(tg_id, msg)
+        else:
+            self.show(tg_id)
+
+    def get_ref_block(self, tg_id: int):
+        msg = 'Кол-во рефералов для доступа к главе'
+        tools.send_menu_msg(tg_id, msg, exit_menu=True)
+        user_context = mem.UserContext(tg_id)
+        user_context.set_status('wait_line')
+        user_context.set_params({'call_to': REF_BLOCK_PREFIX})
 
     def rename(self, tg_id: int, new_name: str):
         renamed_chapter_resp = json.loads(

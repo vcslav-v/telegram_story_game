@@ -2,8 +2,9 @@
 import logging
 
 from data_base.db_utils import get_db
-from data_base.schemas import (GetChapter, GetUserChapter, MakeChapter,
-                               RenameChapter, ReplaceChapter, GetChapterMap)
+from data_base.schemas import (GetChapter, GetChapterMap, GetUserChapter,
+                               MakeChapter, RenameChapter, ReplaceChapter,
+                               SetRefBlockChapter)
 from data_base.services import chapter
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -70,3 +71,13 @@ def get_chapter_map(req_body: GetChapterMap, db: Session = Depends(get_db)):
     except ValueError as val_err:
         return {'error': val_err.args}
     return _chapter.messages_map_to_dict()
+
+
+@router.post('/set_ref_block')
+def set_ref_block(req_body: SetRefBlockChapter, db: Session = Depends(get_db)):
+    """Get and return new story."""
+    try:
+        _chapter = chapter.set_ref_block(db, req_body)
+    except ValueError as val_err:
+        return {'error': val_err.args}
+    return _chapter.to_dict()

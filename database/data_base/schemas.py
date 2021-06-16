@@ -54,6 +54,7 @@ class GetChapter(GetStory):
     chapter_id: int
 
 
+
 class GetChapterMap(BaseModel):
     """Chapter map model."""
 
@@ -64,6 +65,12 @@ class GetUserChapter(TgUser, GetChapter):
     """Chapter model."""
 
     pass
+
+
+class SetRefBlockChapter(GetUserChapter):
+    """Chapter model."""
+
+    ref_block: int
 
 
 class RenameChapter(GetUserChapter):

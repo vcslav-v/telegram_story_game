@@ -173,3 +173,16 @@ def get_chapter_by_uid(
     err_msg = 'Wrong hash'
     logger.error(err_msg)
     raise ValueError(err_msg)
+
+
+def set_ref_block(
+    db: Session,
+    req_body: schemas.SetRefBlockChapter,
+) -> models.Chapter:
+    """Rename chapter."""
+    story_chapter = get_check_user(db, req_body)
+    for msg in story_chapter.messages:
+        msg.referal_block = req_body.ref_block
+    db.commit()
+    db.refresh(story_chapter)
+    return story_chapter

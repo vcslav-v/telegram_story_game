@@ -17,6 +17,18 @@ def show_chapter(call):
 
 
 @bot.callback_query_handler(
+    func=tools.is_correct_prefix(chapter.REF_BLOCK_PREFIX)
+)
+def ref_block_chapter(call):
+    user_context = mem.UserContext(call.from_user.id)
+    _chapter = chapter.Chapter(
+        int(user_context.get_context('story_id')),
+        int(user_context.get_context('chapter_id')),
+        )
+    _chapter.get_ref_block(call.from_user.id)
+
+
+@bot.callback_query_handler(
     func=tools.is_correct_prefix(chapter.MAKE_PREFIX)
 )
 def make_chapter(call):
@@ -97,5 +109,24 @@ def wait_line_rename(message):
     _chapter = chapter.Chapter(
         user_context.get_context('story_id'),
         user_context.get_context('chapter_id'),
-        )
+    )
     _chapter.rename(message.from_user.id, message.text)
+
+
+@bot.message_handler(
+    content_types='text',
+    func=tools.is_wait_line_for(chapter.REF_BLOCK_PREFIX),
+)
+def wait_line_ref_block(message):
+    user_context = mem.UserContext(message.from_user.id)
+    user_context.rm_status()
+    _chapter = chapter.Chapter(
+        user_context.get_context('story_id'),
+        user_context.get_context('chapter_id'),
+    )
+    try:
+        assert(int(message.text) >= 0)
+    except Exception:
+        _chapter.show(message.from_user.id)
+    else:
+        _chapter.set_ref_block(message.from_user.id, int(message.text))

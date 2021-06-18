@@ -136,7 +136,7 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
         msg.content_type = req_body.content_type
         if not req_body.message and req_body.content_type != 'text':
             msg.message = req_body.message
-    if req_body.referal_block:
+    if req_body.referal_block is not None:
         msg.referal_block = req_body.referal_block
     if req_body.next_message_id:
         req_msg = schemas.GetUserMsg(
@@ -153,7 +153,7 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
         ).first()
         if old_start_msg:
             old_start_msg.is_start_chapter = False
-    if req_body.timeout:
+    if req_body.timeout is not None:
         msg.timeout = req_body.timeout
     if req_body.reaction_id:
         reaction = db.query(models.WaitReaction).filter_by(id=req_body.reaction_id).first()

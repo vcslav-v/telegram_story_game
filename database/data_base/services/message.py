@@ -91,6 +91,21 @@ def get_open_msg(db: Session, story_uid: str, msg_id: int):
     raise ValueError(err_msg)
 
 
+def get_open_start_for_chapter(db: Session, story_uid: str, chapter_id: int):
+    msg = db.query(models.Message).filter_by(
+        chapter_id=chapter_id,
+        is_start_chapter=True,
+    ).first()
+    if msg and msg.chapter.story.uid == story_uid:
+        return msg
+
+    err_msg = 'There is not message id - {msg_id}'.format(
+        msg_id=msg_id,
+    )
+    logger.error(err_msg)
+    raise ValueError(err_msg)
+
+
 def get_start_for_chapter(db: Session, req_body: schemas.GetMsgStartForChapter) -> Optional[models.Message]:
     """Return start message for chapter."""
     return db.query(models.Message).filter_by(

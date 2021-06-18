@@ -32,6 +32,16 @@ def msg_get(story_uid: str, msg_id: str, db: Session = Depends(get_db)):
     return _message.to_engine_dict()
 
 
+@router.get('/{story_uid}/start_chapter_msg/{chapter_id}')
+def start_chapter_msg(story_uid: str, chapter_id: str, db: Session = Depends(get_db)):
+    """Return message."""
+    try:
+        _message = message.get_open_start_for_chapter(db, story_uid, int(chapter_id))
+    except ValueError as val_err:
+        return {'error': val_err.args}
+    return _message.to_engine_dict()
+
+
 @router.get('/{story_uid}/wait_reactions/{wr_uid}')
 def wait_reactions_get(story_uid: str, wr_uid: str, db: Session = Depends(get_db)):
     """Return wait reactions."""

@@ -223,7 +223,6 @@ class Message:
             ('Удалить', tools.make_call_back(RM_PREFIX)),
             ('К главе', tools.make_call_back(chapter.SHOW_PREFIX)),
         ])
-        logger.debug(data)
         tools.send_menu_msg(tg_id, data, buttons, content_type=self.content_type)
 
     def get_new_msg(self, tg_id: int):
@@ -374,11 +373,13 @@ class Message:
                 DB_URL.format(item='message', cmd='edit'),
                 json={
                     'msg_id': self.id,
+                    'chapter_id': self.chapter_id,
                     'tg_id': tg_id,
                     'next_message_id': int(to_msg_id),
                 },
             ).text
         )
+        logger.debug(edit_msg_resp)
         if edit_msg_resp.get('error'):
             msg = edit_msg_resp.get('error')
             tools.send_menu_msg(tg_id, msg)

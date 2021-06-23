@@ -4,9 +4,11 @@ import requests
 import json
 import hashlib
 import base64
+from loguru import logger
 
 
 @app.route("/chapter/<chapter_hash>")
+@logger.catch
 def chapter_map(chapter_hash):
     chapter_map_resp = json.loads(
         requests.post(
@@ -74,6 +76,7 @@ def chapter_map(chapter_hash):
             unattached_keys = story_dict.keys() - writed_msgs
             for msg_id in unattached_keys:
                 msg = story_dict[msg_id]
+                logger.debug(msg)
                 if not msg['parent'] and not msg['from_buttons']:
                     next_msgs.append(msg['id'])
                     writed_msgs.add(msg['id'])

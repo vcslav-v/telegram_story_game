@@ -265,7 +265,7 @@ def wait_line_add_direct_link(msg):
         user_context.get_context('message_id'),
         )
     try:
-        int(msg.text)
+        assert(int(msg.text) != _message.id)
     except Exception:
         _message.show(msg.from_user.id)
     else:

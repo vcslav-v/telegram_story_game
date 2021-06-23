@@ -77,7 +77,7 @@ def chapter_map(chapter_hash):
             for msg_id in unattached_keys:
                 msg = story_dict[msg_id]
                 logger.debug(msg)
-                if not msg['parent'] and not msg['from_buttons']:
+                if not msg['parents'] and not msg['from_buttons']:
                     next_msgs.append(msg['id'])
                     writed_msgs.add(msg['id'])
                     break

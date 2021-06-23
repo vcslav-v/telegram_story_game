@@ -5,8 +5,7 @@ from typing import Optional
 from data_base import models, schemas
 from data_base.services import chapter
 from sqlalchemy.orm import Session
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 def make(
@@ -144,7 +143,7 @@ def rm(db: Session, req_body: schemas.GetUserMsg) -> dict:
     db.commit()
     return {'result': 'ok'}
 
-
+@logger.catch
 def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
     """Edit text message by id."""
     msg = get_check_user(db, req_body)

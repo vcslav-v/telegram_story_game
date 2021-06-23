@@ -136,6 +136,7 @@ def get_check_user(
     raise ValueError(err_msg)
 
 
+@logger.catch
 def rm(db: Session, req_body: schemas.GetUserMsg) -> dict:
     """Remove message by id."""
     msg = get_check_user(db, req_body)

@@ -33,6 +33,7 @@ def show_msg(call):
 @bot.callback_query_handler(
     func=tools.is_correct_prefix(message.RM_PREFIX)
 )
+@logger.catch
 def rm_message(call):
     user_context = mem.UserContext(call.from_user.id)
     params = tools.get_call_back_params(call.data)

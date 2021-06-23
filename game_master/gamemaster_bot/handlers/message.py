@@ -141,6 +141,7 @@ def add_btn_link_msg(call):
 @bot.callback_query_handler(
     func=tools.is_correct_prefix(message.ADD_DIRECT_LINK_PREFIX)
 )
+@logger.catch
 def add_direct_link_msg(call):
     user_context = mem.UserContext(call.from_user.id)
     _message = message.Message(
@@ -256,6 +257,7 @@ def wait_line_add_link_btn(msg):
     content_types='text',
     func=tools.is_wait_line_for(message.ADD_DIRECT_LINK_PREFIX),
 )
+@logger.catch
 def wait_line_add_direct_link(msg):
     user_context = mem.UserContext(msg.from_user.id)
     user_context.rm_status()

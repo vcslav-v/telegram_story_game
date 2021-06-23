@@ -106,7 +106,7 @@ class Message:
         self.media_id = msg_resp.get('media_id')
         self.link = msg_resp.get('link')
         self.from_buttons = msg_resp.get('from_buttons')
-        self.parrent = msg_resp.get('parrent')
+        self.parents = msg_resp.get('parents')
         self.buttons = msg_resp.get('buttons')
         self.wait_reaction = msg_resp.get('wait_reaction')
         self.referal_block = msg_resp.get('referal_block')
@@ -166,11 +166,12 @@ class Message:
                 ]
             )
         direct_msg_buttons = []
-        if self.parrent:
-            direct_msg_buttons.append(('<=', tools.make_call_back(
-                SHOW_PREFIX,
-                {'msg_id': self.parrent},
-            )))
+        if self.parents:
+            for parent in self.parents:
+                direct_msg_buttons.append(('<=', tools.make_call_back(
+                    SHOW_PREFIX,
+                    {'msg_id': parent},
+                )))
 
         if not self.buttons:
             direct_msg_buttons.append(

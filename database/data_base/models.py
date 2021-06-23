@@ -147,8 +147,10 @@ class Message(Base):
         foreign_keys='[Media.parrent_message_id]',
     )
 
-    parent_id = Column(Integer, ForeignKey('messages.id'))
-    link = relationship('Message', lazy='joined', uselist=False, join_depth=1)
+    link_id = Column(Integer, ForeignKey('messages.id'))
+
+    parents = relationship('Message', lazy='joined', join_depth=1, foreign_keys='[Message.link_id]')
+
     timeout = Column(Integer)
     own_buttons = relationship(
         'Button',
@@ -180,8 +182,8 @@ class Message(Base):
             'message': self.message,
             'media_id': self.media.id if self.media else None,
             'is_start_chapter': self.is_start_chapter,
-            'link': self.link.id if self.link else None,
-            'parrent': self.parent_id if self.parent_id else None,
+            'link': self.link_id,
+            'parents': [parent.id for parent in self.parents] if self.parents else None,
             'from_buttons': self.from_button if self.from_button else None,
             'buttons': sorted(btns, key=lambda x: x['number']),
             'wait_reaction': self.wait_reaction.to_dict() if self.wait_reaction else {},
@@ -198,7 +200,7 @@ class Message(Base):
             'timeout': self.timeout,
             'text': self.message,
             'media_uid': self.media.uid if self.media else None,
-            'link': self.link.id if self.link else None,
+            'link': self.link_id,
             'buttons': sorted(btns, key=lambda x: x['number']),
             'wait_reaction_uid': self.wait_reaction.uid if self.wait_reaction else None,
             'referal_block': self.referal_block,

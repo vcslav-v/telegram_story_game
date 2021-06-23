@@ -36,17 +36,7 @@ def make(
             msg_id=req_body.next_message_id,
         )
         next_message = get_check_user(db, req_msg)
-        new_msg.link = next_message
-    if req_body.parrent_message_id:
-        req_msg = schemas.GetUserMsg(
-            tg_id=req_body.tg_id,
-            chapter_id=req_body.chapter_id,
-            story_id=req_body.story_id,
-            msg_id=req_body.parrent_message_id,
-        )
-        parrent_msg = get_check_user(db, req_msg)
-        parrent_msg.link = new_msg
-        db.add(parrent_msg)
+        new_msg.link_id = next_message.id
     if req_body.is_start_msg:
         new_msg.is_start_chapter = True
         old_start_msg = db.query(models.Message).filter_by(
@@ -57,6 +47,19 @@ def make(
             old_start_msg.is_start_chapter = False
 
     db.add(new_msg)
+    db.commit()
+
+    if req_body.parrent_message_id:
+        req_msg = schemas.GetUserMsg(
+            tg_id=req_body.tg_id,
+            chapter_id=req_body.chapter_id,
+            story_id=req_body.story_id,
+            msg_id=req_body.parrent_message_id,
+        )
+        parrent_msg = get_check_user(db, req_msg)
+        parrent_msg.link_id = new_msg.id
+        db.add(parrent_msg)
+    
     db.commit()
     db.refresh(new_msg)
     return new_msg
@@ -159,7 +162,7 @@ def edit(db: Session, req_body: schemas.EditMsg) -> models.Message:
             tg_id=req_body.tg_id,
         )
         next_message = get_check_user(db, req_msg)
-        msg.link = next_message
+        msg.link_id = next_message.id
     if req_body.is_start_msg:
         msg.is_start_chapter = True
         old_start_msg = db.query(models.Message).filter_by(
